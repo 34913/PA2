@@ -21,6 +21,26 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+#include <math.h>
+
+//
+
+bool GetBit( ifstream & input ) 
+{
+	static char byte;
+	static int counter = 0;
+
+	if( counter == 0 )
+		input.read( &byte, 1 );
+	
+	bool r = byte & ( 1 << abs(counter - 7) );
+
+	if( ++counter == 8 )
+		counter = 0;
+
+	return r;
+}
+
 //
 
 class branch
@@ -44,15 +64,6 @@ public:
 	{
 	}
 
-	void CreateRight()
-	{
-		right = Create();
-	}
-	void CreateLeft()
-	{
-		left = Create();
-	}
-
 	branch *GetRight()
 	{
 		return right;
@@ -61,13 +72,70 @@ public:
 	{
 		return left;
 	}
+
+	//
+
+	bool Read( ifstream & input, char & buffer, int lastPos )
+	{
+		
+	}
+
+	//
+
+	void Clear()
+	{
+		if( right != nullptr ) {
+			right->Clear();
+			delete right;
+		}
+		if( left != nullptr ) {
+			left->Clear();
+			delete left;
+		}		
+	}
+
 };
+
+//
 
 //
 
 bool decompressFile(const char *inFileName, const char *outFileName)
 {
-	// todo
+	ifstream input( inFileName, ios::binary | ios::in );
+	if( !input.is_open() )
+		return false;
+	if( input.eof() )
+		return false;
+
+	branch top;
+
+	input.seekg( 0, ios::end );
+	streampos size = input.tellg();
+	input.seekg( 0, ios::beg );
+
+	char *block = new char[size];
+    input.read( block, size );
+
+	for( int i = 0; i < size; i ++ ) {
+		for( int y = 7; y >= 0; y-- ) {
+			bool bit = (block[ i ] & (1 << y));
+			cout << bit << " ";
+		}
+		cout << " - " << (int)block[ i ] << endl;
+	}
+	
+
+/*
+	if( top.Read( input ) ) 
+		return false;
+
+*/
+	
+
+	input.close();
+
+
 	return false;
 }
 
