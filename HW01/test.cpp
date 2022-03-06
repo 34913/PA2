@@ -41,13 +41,18 @@ bool GetBit( ifstream & input )
 	return r;
 }
 
+void ReadChunk( ifstream & input )
+{
+	
+}
+
 //
 
 class branch
 {
 
 private:
-	branch *Create()
+	static branch *Create()
 	{
 		return new branch();
 	}
@@ -75,9 +80,25 @@ public:
 
 	//
 
-	bool Read( ifstream & input, char & buffer, int lastPos )
+	bool Read( ifstream & input )
 	{
 		
+		if( GetBit( input ) == 1 ) {
+			char character = 0;
+			for( int i = 7; i >= 0; i -- ) {
+				bool bit = GetBit( input );
+				character |= bit << i;
+				cout << bit;
+			}
+			cout << endl << character << endl;
+		}
+		else {
+			right = branch::Create();
+			left = branch::Create();
+
+			return left->Read( input ) && right->Read( input );
+		}
+		return true;
 	}
 
 	//
@@ -114,24 +135,19 @@ bool decompressFile(const char *inFileName, const char *outFileName)
 	streampos size = input.tellg();
 	input.seekg( 0, ios::beg );
 
-	char *block = new char[size];
-    input.read( block, size );
-
 	for( int i = 0; i < size; i ++ ) {
 		for( int y = 7; y >= 0; y-- ) {
-			bool bit = (block[ i ] & (1 << y));
-			cout << bit << " ";
+			cout << GetBit( input );
 		}
-		cout << " - " << (int)block[ i ] << endl;
+		cout << endl;
 	}
-	
+	cout << endl;
+	input.seekg( 0, ios::beg );
 
-/*
-	if( top.Read( input ) ) 
+	if( !top.Read( input ) ) 
 		return false;
 
-*/
-	
+	if( GetBit(input) )
 
 	input.close();
 
