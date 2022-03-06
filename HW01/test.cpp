@@ -21,6 +21,52 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+//
+
+class branch
+{
+
+private:
+
+	branch* Create()
+	{
+		return new branch();
+	}
+
+	branch *right;
+	branch *left;
+
+public:
+	char character = 0;
+
+	branch()
+	:	right( nullptr ),
+		left( nullptr )
+	{}
+
+	void CreateRight()
+	{
+		right = Create();
+	}
+	void CreateLeft()
+	{
+		left = Create();
+	}
+
+	branch *GetRight()
+	{
+		return right;
+	}
+	branch *GetLeft()
+	{
+		return left;
+	}
+
+
+};
+
+//
+
 bool decompressFile ( const char * inFileName, const char * outFileName )
 {
   // todo
