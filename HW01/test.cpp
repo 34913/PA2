@@ -90,6 +90,37 @@ private:
 
 	char character;
 
+
+	bool Convert( bitClass & inputBit )
+	{
+		int last = -1;
+		bool bit;
+		for( int y = 0; y < 4; y++ ) {
+			int max = 6;
+			if( inputBit.GetBit( bit ) )
+				return true;
+
+			while( bit ) {
+				if( inputBit.GetBit( bit ) )
+					return true;
+				max--;
+			}
+
+			if( last != -1 && last != max - 1 )
+				return true;
+
+			for( int i = max; i >= 0; i -- ) {
+				if( inputBit.GetBit( bit ) )
+					return true;
+				character |= bit << i;
+			}
+
+			if( max == 6 )
+				break;
+		}
+		return false;
+	}
+
 public:
 
 	branchClass()
@@ -114,11 +145,8 @@ public:
 
 		if( bit ) {
 			character = 0x0;
-			for( int i = 7; i >= 0; i -- ) {
-				if( inputBit.GetBit( bit ) )
-					return true;
-				character |= bit << i;
-			}
+			if( Convert( inputBit) )
+				return true;
 		}
 		else {
 			right = new branchClass();
