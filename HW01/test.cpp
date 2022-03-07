@@ -88,36 +88,55 @@ private:
 	branchClass *right;
 	branchClass *left;
 
-	char character;
+	uint32_t character;
 
-
+	/**
+	 * @brief converts input in UTF-8 character 
+	 * (cant save it, just yet, ups)
+	 * 
+	 * @param inputBit bitClass for reading the bits from file
+	 * @return true failure
+	 * @return false success
+	 */
 	bool Convert( bitClass & inputBit )
 	{
-		int last = -1;
 		bool bit;
+		int shift = 6;
+		int add = 4;
+		bool first = true;
+
 		for( int y = 0; y < 4; y++ ) {
-			int max = 6;
 			if( inputBit.GetBit( bit ) )
 				return true;
-
+			cout << bit;
+			int count = 0;
 			while( bit ) {
 				if( inputBit.GetBit( bit ) )
 					return true;
-				max--;
+				cout << bit;
+
+				count++;
+				
+				if( first && count > 1 )
+					shift += add++;
 			}
-
-			if( last != -1 && last != max - 1 )
+			if( !first && count != 1 )
 				return true;
+			else if( first )
+				cout << endl << shift << endl;
 
-			for( int i = max; i >= 0; i -- ) {
+			for( int i = 6 - count; i >= 0; i -- ) {
 				if( inputBit.GetBit( bit ) )
 					return true;
-				character |= bit << i;
+				character |= bit << shift--;
 			}
 
-			if( max == 6 )
+			first = false;
+
+			if( shift == -1 )
 				break;
 		}
+
 		return false;
 	}
 
@@ -336,6 +355,8 @@ bool identicalFiles(const char *fileName1, const char *fileName2)
 
 int main(void)
 {
+
+/*
 	assert(decompressFile("tests/test0.huf", "tempfile"));
 	assert(identicalFiles("tests/test0.orig", "tempfile"));
 
@@ -353,6 +374,7 @@ int main(void)
 
 	assert(!decompressFile("tests/test5.huf", "tempfile"));
 
+*/
 	assert(decompressFile("tests/extra0.huf", "tempfile"));
 	assert(identicalFiles("tests/extra0.orig", "tempfile"));
 
