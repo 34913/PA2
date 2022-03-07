@@ -35,7 +35,6 @@ private:
 
 	char byte;
 	int counter;
-	int bitsRead = 0;
 
 	bool good = true;
 
@@ -73,20 +72,13 @@ public:
 			counter = maxByte - 1;
 		}
 
-		bit = byte & ( 1 << counter );
-		if( ++ bitsRead == INT16_MAX )
-			ResetBitsRead();
-
-		--counter;
+		bit = byte & ( 1 << counter-- );
+		
 		return false;
 	}
 
 	bool isGood() { return good; }
 	
-	int GetBitsRead() { return bitsRead; }
-
-	void ResetBitsRead() { bitsRead = 0; }
-
 	void close() { input.close(); }
 };
 
@@ -131,6 +123,9 @@ public:
 		else {
 			right = new branchClass();
 			left = new branchClass();
+
+			if( !right || !left )
+				return true;
 
 			return left->Read( inputBit ) || right->Read( inputBit );
 		}
@@ -278,7 +273,7 @@ bool decompressFile(const char *inFileName, const char *outFileName)
 	ofstream output( outFileName, ios::binary | ios::out );
 	if( !input.is_open() || !output.is_open() )
 		return false;
-	if( input.eof() )
+	if( input.eof() || !input.good() || !output.good() )
 		return false;
 
 	branchClass top;
