@@ -21,88 +21,156 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
-#include <math.h>
+#define CHUNK_SIZE 4096
 
 //
 
-bool GetBit( ifstream & input ) 
+class bitClass 
 {
-	static char byte;
-	static int counter = 0;
-
-	if( counter == 0 )
-		input.read( &byte, 1 );
-	
-	bool r = byte & ( 1 << abs(counter - 7) );
-
-	if( ++counter == 8 )
-		counter = 0;
-
-	return r;
-}
-
-void ReadChunk( ifstream & input )
-{
-	
-}
-
-//
-
-class branch
-{
+protected:
+	ifstream & input;
 
 private:
-	static branch *Create()
-	{
-		return new branch();
-	}
+	const int maxByte = 8;
 
-	branch *right;
-	branch *left;
+	char byte;
+	int counter;
+	int bitsRead = 0;
+
+	bool good = true;
+
+	/**
+	 * @brief reads one byte from input, also sets error handling variables
+	 * 
+	 */
+	void ReadByte()
+	{
+		if( !input.read( &byte, 1 ) )
+			good = false;
+		good = input.good();
+	}
 
 public:
-	char character = 0;
 
-	branch()
+	bitClass( ifstream & input )
+	:	input( input ),
+		counter( -1 )
+	{}
+
+	/**
+	 * @brief Get the bit from input
+	 * 
+	 * @param bit bit to be set from input
+	 * @return true failure
+	 * @return false success
+	 */
+	bool GetBit( bool & bit )
+	{
+		if( counter == -1 ) {
+			ReadByte();
+			if( !good )
+				return true;
+			counter = maxByte - 1;
+		}
+
+		bit = byte & ( 1 << counter );
+		if( ++ bitsRead == INT16_MAX )
+			ResetBitsRead();
+
+		--counter;
+		return false;
+	}
+
+	bool isGood() { return good; }
+	
+	int GetBitsRead() { return bitsRead; }
+
+	void ResetBitsRead() { bitsRead = 0; }
+
+	void close() { input.close(); }
+};
+
+class branchClass
+{
+private:
+	branchClass *right;
+	branchClass *left;
+
+	char character;
+
+public:
+
+	branchClass()
 		: right(nullptr),
-		  left(nullptr)
-	{
-	}
+		  left(nullptr),
+		  character(0x0)
+	{}
 
-	branch *GetRight()
+	/**
+	 * @brief reads and creates all the branches for storing the tree of code names 
+	 * for each character on input of hufman tree
+	 * 
+	 * @param inputBit bitClass for reading the bits from file
+	 * @return true failure
+	 * @return false success
+	 */
+	bool Read( bitClass & inputBit )
 	{
-		return right;
-	}
-	branch *GetLeft()
-	{
-		return left;
-	}
+		bool bit;
+		if( inputBit.GetBit( bit ) )
+			return true;
 
-	//
-
-	bool Read( ifstream & input )
-	{
-		
-		if( GetBit( input ) == 1 ) {
-			char character = 0;
+		if( bit ) {
+			character = 0x0;
 			for( int i = 7; i >= 0; i -- ) {
-				bool bit = GetBit( input );
+				if( inputBit.GetBit( bit ) )
+					return true;
 				character |= bit << i;
-				cout << bit;
 			}
-			cout << endl << character << endl;
 		}
 		else {
-			right = branch::Create();
-			left = branch::Create();
+			right = new branchClass();
+			left = new branchClass();
 
-			return left->Read( input ) && right->Read( input );
+			return left->Read( inputBit ) || right->Read( inputBit );
 		}
-		return true;
+		return false;
 	}
 
-	//
+	/**
+	 * @brief Get the char of code name from input file
+	 * 
+	 * @param inputBit bitClass for reading each bits from the input
+	 * @param ch saving the character
+	 * @return true failure
+	 * @return false success
+	 */
+	bool GetChar( bitClass & inputBit, char & ch )
+	{
+		if( character != 0x0 ) {
+			ch = character;
+			return false;
+		}
+		// dont need to check left, both has to be nullptr
+		// if the list is on the end
+		else if( right == nullptr )
+			return true;
 
+		bool bit;
+		if( inputBit.GetBit( bit ) )
+			return true;
+
+
+		if( bit )
+			return right->GetChar( inputBit, ch );
+		else
+			return left->GetChar( inputBit, ch );
+	}
+
+	/**
+	 * @brief clearing all subtrees of this specified branch
+	 * 
+	 */
 	void Clear()
 	{
 		if( right != nullptr ) {
@@ -112,47 +180,122 @@ public:
 		if( left != nullptr ) {
 			left->Clear();
 			delete left;
-		}		
+		}
+	}
+
+};
+
+class InOutClass
+{
+protected:
+	bitClass & inputBits;
+	ofstream & output;
+	branchClass & top;
+
+public:
+
+	InOutClass( bitClass & inputBits, ofstream & output, branchClass & top )
+	:	inputBits( inputBits ),
+		output( output ),
+		top(top)
+	{}
+
+	/**
+	 * @brief reads the rest of the input file
+	 * converts it to the characters in output file in the process
+	 * 
+	 * @return true 
+	 * @return false 
+	 */
+	bool Read()
+	{
+		bool bit;
+		while( true ) {
+			if( inputBits.GetBit( bit ) )
+				return true;
+			
+			if( !bit )
+				break;
+	
+			if( ReadPartion( CHUNK_SIZE ) )
+				return true;
+		}
+
+		int end = 0x0;
+		for( int i = 11; i >= 0; i -- ) {
+			if( inputBits.GetBit( bit ) )
+				return true;
+			end |= bit << i;
+		}
+
+		if( ReadPartion( end ) )
+			return true;
+
+		return false;
+	}
+
+	/**
+	 * @brief reads just partion of input
+	 * 
+	 * @param end specifies how many bits has to be read
+	 * @return true failure
+	 * @return false success
+	 */
+	bool ReadPartion( int end )
+	{
+		char ch;
+		int charNum = 0;
+
+		while( charNum < end ) {
+			ch = 0x0;
+
+			if( top.GetChar( inputBits, ch ) )
+				return true;
+
+			if( !output.write( &ch, 1) )
+				return true;
+
+			charNum ++;
+		}
+
+		return false;
+	}
+
+	void close()
+	{
+		inputBits.close();
+		output.close();
+		top.Clear();
 	}
 
 };
 
 //
 
-//
-
 bool decompressFile(const char *inFileName, const char *outFileName)
 {
 	ifstream input( inFileName, ios::binary | ios::in );
-	if( !input.is_open() )
+	ofstream output( outFileName, ios::binary | ios::out );
+	if( !input.is_open() || !output.is_open() )
 		return false;
 	if( input.eof() )
 		return false;
 
-	branch top;
-
-	input.seekg( 0, ios::end );
-	streampos size = input.tellg();
-	input.seekg( 0, ios::beg );
-
-	for( int i = 0; i < size; i ++ ) {
-		for( int y = 7; y >= 0; y-- ) {
-			cout << GetBit( input );
-		}
-		cout << endl;
-	}
-	cout << endl;
-	input.seekg( 0, ios::beg );
-
-	if( !top.Read( input ) ) 
+	branchClass top;
+	bitClass inputBit( input );
+	
+	if( top.Read( inputBit ) )
 		return false;
 
-	if( GetBit(input) )
+	InOutClass reading( inputBit, output, top );
+	if( reading.Read() ) {
+		reading.close();
+		return false;
+	}
 
-	input.close();
-
-
-	return false;
+	reading.close();
+	
+	return true;
 }
 
 bool compressFile(const char *inFileName, const char *outFileName)
@@ -160,11 +303,12 @@ bool compressFile(const char *inFileName, const char *outFileName)
 	// keep this dummy implementation (no bonus) or implement the compression (bonus)
 	return false;
 }
+
 #ifndef __PROGTEST__
 bool identicalFiles(const char *fileName1, const char *fileName2)
 {
-	// todo
-	return false;
+	string in = "cmp -s " + string(fileName1) + " " + string(fileName2);
+	return !system( in.c_str() );
 }
 
 int main(void)
