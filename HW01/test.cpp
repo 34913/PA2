@@ -88,7 +88,8 @@ private:
 	branchClass *right;
 	branchClass *left;
 
-	uint32_t character;
+	int realBytes = 0;
+	uint32_t character = 0b0;
 
 	/**
 	 * @brief converts input in UTF-8 character 
@@ -101,40 +102,38 @@ private:
 	bool Convert( bitClass & inputBit )
 	{
 		bool bit;
-		int shift = 6;
-		int add = 4;
-		bool first = true;
+		int shift;
 
-		for( int y = 0; y < 4; y++ ) {
-			if( inputBit.GetBit( bit ) )
-				return true;
-			cout << bit;
-			int count = 0;
+		if( inputBit.GetBit( bit ) )
+			return true;
+
+		if( bit ) {
+			shift = -1;
 			while( bit ) {
 				if( inputBit.GetBit( bit ) )
 					return true;
-				cout << bit;
 
-				count++;
-				
-				if( first && count > 1 )
-					shift += add++;
+				realBytes++;
+				shift += 8;
 			}
-			if( !first && count != 1 )
+			if( shift == 7 )
 				return true;
-			else if( first )
-				cout << endl << shift << endl;
 
-			for( int i = 6 - count; i >= 0; i -- ) {
-				if( inputBit.GetBit( bit ) )
-					return true;
-				character |= bit << shift--;
-			}
+			for( int i = 0; i < realBytes; i++ )
+				character |= 1 << shift--;
+			shift--;
+		}
+		else {
+			realBytes = 1;
+			shift = 6;
+		}
 
-			first = false;
-
-			if( shift == -1 )
-				break;
+		while( shift >= 0 ) {
+			if( inputBit.GetBit( bit ) )
+				return true;
+			if( bit )
+				character |= bit << shift;
+			shift--;
 		}
 
 		return false;
@@ -144,8 +143,7 @@ public:
 
 	branchClass()
 		: right(nullptr),
-		  left(nullptr),
-		  character(0x0)
+		  left(nullptr)
 	{}
 
 	/**
@@ -163,7 +161,6 @@ public:
 			return true;
 
 		if( bit ) {
-			character = 0x0;
 			if( Convert( inputBit) )
 				return true;
 		}
@@ -187,10 +184,11 @@ public:
 	 * @return true failure
 	 * @return false success
 	 */
-	bool GetChar( bitClass & inputBit, char & ch )
+	bool GetChar( bitClass & inputBit, uint32_t & ch, int & bytesCount )
 	{
-		if( character != 0x0 ) {
+		if( character != 0b0 ) {
 			ch = character;
+			bytesCount = realBytes;
 			return false;
 		}
 		// dont need to check left, both has to be nullptr
@@ -202,11 +200,10 @@ public:
 		if( inputBit.GetBit( bit ) )
 			return true;
 
-
 		if( bit )
-			return right->GetChar( inputBit, ch );
+			return right->GetChar( inputBit, ch, bytesCount );
 		else
-			return left->GetChar( inputBit, ch );
+			return left->GetChar( inputBit, ch, bytesCount );
 	}
 
 	/**
@@ -263,16 +260,17 @@ public:
 				return true;
 		}
 
-		int end = 0x0;
+		int end = 0b0;
 		for( int i = 11; i >= 0; i -- ) {
 			if( inputBits.GetBit( bit ) )
 				return true;
 			end |= bit << i;
 		}
 
-		if( ReadPartion( end ) )
-			return true;
-
+		if( end > 0 ) {
+			if( ReadPartion( end ) )
+				return true;
+		}
 		return false;
 	}
 
@@ -285,17 +283,20 @@ public:
 	 */
 	bool ReadPartion( int end )
 	{
-		char ch;
+		uint32_t ch;
+		int bytes;
 		int charNum = 0;
 
 		while( charNum < end ) {
-			ch = 0x0;
-
-			if( top.GetChar( inputBits, ch ) )
+			if( top.GetChar( inputBits, ch, bytes ) )
 				return true;
 
-			if( !output.write( &ch, 1) )
-				return true;
+			for( int i = bytes - 1; i >= 0; i-- ) {
+				char out = ( ch >> i * 8 ) & 0b11111111;
+
+				if( !output.write( &out, 1 ) )
+					return true;
+			}
 
 			charNum ++;
 		}
