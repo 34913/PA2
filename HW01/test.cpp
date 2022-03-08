@@ -85,8 +85,8 @@ public:
 class branchClass
 {
 private:
-	branchClass *right;
-	branchClass *left;
+	branchClass *right = nullptr;
+	branchClass *left = nullptr;
 
 	int realBytes = 0;
 	uint32_t character = 0b0;
@@ -101,37 +101,51 @@ private:
 	 */
 	bool Convert( bitClass & inputBit )
 	{
-		bool bit;
-		int shift;
+		bool bit = false;
 
 		if( inputBit.GetBit( bit ) )
 			return true;
 
-		if( bit ) {
-			shift = -1;
-			while( bit ) {
+		// just ASCII
+		if( !bit ) {
+			realBytes = 1;
+
+			for( int i = 6; i >= 0; i-- ) {
 				if( inputBit.GetBit( bit ) )
 					return true;
-
-				realBytes++;
-				shift += 8;
+				if( bit )
+					character |= bit << i;
 			}
-			if( shift == 7 )
+			return false;
+		}
+
+		int shift = -1;
+		while( bit ) {
+			if( inputBit.GetBit( bit ) || ++realBytes > 4 )
 				return true;
-
-			for( int i = 0; i < realBytes; i++ )
-				character |= 1 << shift--;
-			shift--;
-		}
-		else {
-			realBytes = 1;
-			shift = 6;
+			shift += 8;
 		}
 
+		if( realBytes == 1 )
+			return true;
+
+		for( int i = 0; i < realBytes; i++ )
+			character |= 1 << shift--;
+		shift--;
+		
 		while( shift >= 0 ) {
 			if( inputBit.GetBit( bit ) )
 				return true;
-			if( bit )
+			if( ( shift + 1 ) % 8 == 0 ) {
+				if( !bit )
+					return true;
+				character |= bit << shift;
+			}
+			else if( ( shift + 2 ) % 8 == 0 ) {
+				if( bit )
+					return true;
+			}
+			else if( bit )
 				character |= bit << shift;
 			shift--;
 		}
@@ -186,7 +200,7 @@ public:
 	 */
 	bool GetChar( bitClass & inputBit, uint32_t & ch, int & bytesCount )
 	{
-		if( character != 0b0 ) {
+		if( realBytes != 0 ) {
 			ch = character;
 			bytesCount = realBytes;
 			return false;
@@ -356,8 +370,6 @@ bool identicalFiles(const char *fileName1, const char *fileName2)
 
 int main(void)
 {
-
-/*
 	assert(decompressFile("tests/test0.huf", "tempfile"));
 	assert(identicalFiles("tests/test0.orig", "tempfile"));
 
@@ -375,7 +387,6 @@ int main(void)
 
 	assert(!decompressFile("tests/test5.huf", "tempfile"));
 
-*/
 	assert(decompressFile("tests/extra0.huf", "tempfile"));
 	assert(identicalFiles("tests/extra0.orig", "tempfile"));
 
@@ -405,6 +416,8 @@ int main(void)
 
 	assert(decompressFile("tests/extra9.huf", "tempfile"));
 	assert(identicalFiles("tests/extra9.orig", "tempfile"));
+
+	assert(decompressFile("tests/special0.huf", "tempfile"));
 
 	return 0;
 }
