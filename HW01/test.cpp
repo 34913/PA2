@@ -33,8 +33,8 @@ protected:
 private:
 	const int maxByte = 8;
 
-	char byte;
-	int counter;
+	char byte = 0b0;
+	int counter = -1;
 
 	bool good = true;
 
@@ -46,14 +46,14 @@ private:
 	{
 		if( !input.read( &byte, 1 ) )
 			good = false;
-		good = input.good();
+		else
+			good = input.good();
 	}
 
 public:
 
 	bitClass( ifstream & input )
-	:	input( input ),
-		counter( -1 )
+	:	input( input )
 	{}
 
 	/**
@@ -82,6 +82,8 @@ public:
 	void close() { input.close(); }
 };
 
+//
+
 class branchClass
 {
 private:
@@ -92,47 +94,62 @@ private:
 	uint32_t character = 0b0;
 
 	/**
-	 * @brief converts input in UTF-8 character 
-	 * (cant save it, just yet, ups)
+	 * @brief Converts input in ASCII character
 	 * 
 	 * @param inputBit bitClass for reading the bits from file
 	 * @return true failure
 	 * @return false success
 	 */
-	bool Convert( bitClass & inputBit )
+	bool ConvertAscii( bitClass & inputBit )
 	{
-		bool bit = false;
+		bool bit;
+		realBytes = 1;
 
-		if( inputBit.GetBit( bit ) )
-			return true;
-
-		// just ASCII
-		if( !bit ) {
-			realBytes = 1;
-
-			for( int i = 6; i >= 0; i-- ) {
-				if( inputBit.GetBit( bit ) )
-					return true;
-				if( bit )
-					character |= bit << i;
-			}
-			return false;
+		for( int i = 6; i >= 0; i-- ) {
+			if( inputBit.GetBit( bit ) )
+				return true;
+			if( bit )
+				character |= bit << i;
 		}
+		return false;
+	}
+
+	/**
+	 * @brief Converts input in UTF-8 character
+	 * 
+	 * @param inputBit bitClass for reading the bits from file
+	 * @return true failure
+	 * @return false success
+	 */
+	bool ConvertUTF( bitClass & inputBit )
+	{
+		bool bit;
+		uint32_t check = 0b0;
+		int CheckShift = 0;
 
 		int shift = -1;
-		while( bit ) {
+		do {
 			if( inputBit.GetBit( bit ) || ++realBytes > 4 )
 				return true;
 			shift += 8;
-		}
+		} while( bit );
 
 		if( realBytes == 1 )
 			return true;
+		else if( realBytes == 2 )
+			CheckShift = 10;
+		else if( realBytes == 3 )
+			CheckShift = 15;
+		else
+			CheckShift = 20;
 
+		// shifting first bits (1) as it is supposed to be in UTF-8
+		//	-> 110 | 1110 | 11110
 		for( int i = 0; i < realBytes; i++ )
 			character |= 1 << shift--;
 		shift--;
 		
+		// setting the character by shifting the input
 		while( shift >= 0 ) {
 			if( inputBit.GetBit( bit ) )
 				return true;
@@ -145,10 +162,18 @@ private:
 				if( bit )
 					return true;
 			}
-			else if( bit )
+			else if( bit ) {
 				character |= bit << shift;
+				check |= bit << CheckShift--;
+			}
+			else
+				CheckShift--;
 			shift--;
 		}
+
+		// cout << check << " " << 0x10FFFF << endl;
+		if( check > 0x10FFFF )
+			return true;
 
 		return false;
 	}
@@ -175,19 +200,28 @@ public:
 			return true;
 
 		if( bit ) {
-			if( Convert( inputBit) )
-				return true;
-		}
-		else {
-			right = new branchClass();
-			left = new branchClass();
-
-			if( !right || !left )
+			if( inputBit.GetBit( bit ) )
 				return true;
 
-			return left->Read( inputBit ) || right->Read( inputBit );
+			if( bit ) {
+				if( ConvertUTF( inputBit ) )
+					return true;
+			}
+			else {
+				if( ConvertAscii( inputBit ) )
+					return true;
+			}
+
+			return false;
 		}
-		return false;
+	
+		right = new branchClass();
+		left = new branchClass();
+
+		if( !right || !left )
+			return true;
+
+		return left->Read( inputBit ) || right->Read( inputBit );
 	}
 
 	/**
@@ -245,6 +279,48 @@ protected:
 	ofstream & output;
 	branchClass & top;
 
+	/**
+	 * @brief writes the specified number of bytes in ifstream byte by byte
+	 * 
+	 * @param ch 4 bytes maximum of data
+	 * @param bytes number of bytes, to be sure in utf8
+	 * @return true failure
+	 * @return false success
+	 */
+	bool Write( uint32_t ch, int bytes )
+	{
+		for( int i = bytes - 1; i >= 0; i-- ) {
+			char out = ( ch >> i * 8 ) & 0b11111111;
+
+			if( !output.write( &out, 1 ) )
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @brief reads just partion of input
+	 * 
+	 * @param end specifies how many bits has to be read
+	 * @return true failure
+	 * @return false success
+	 */
+	bool ReadPartion( int end )
+	{
+		uint32_t ch;
+		int bytes;
+		
+		for( int i = 0; i < end; i++) {
+			if( top.GetChar( inputBits, ch, bytes ) )
+				return true;
+
+			if( Write( ch, bytes ) )
+				return true;
+		}
+
+		return false;
+	}
+
 public:
 
 	InOutClass( bitClass & inputBits, ofstream & output, branchClass & top )
@@ -288,36 +364,6 @@ public:
 		return false;
 	}
 
-	/**
-	 * @brief reads just partion of input
-	 * 
-	 * @param end specifies how many bits has to be read
-	 * @return true failure
-	 * @return false success
-	 */
-	bool ReadPartion( int end )
-	{
-		uint32_t ch;
-		int bytes;
-		int charNum = 0;
-
-		while( charNum < end ) {
-			if( top.GetChar( inputBits, ch, bytes ) )
-				return true;
-
-			for( int i = bytes - 1; i >= 0; i-- ) {
-				char out = ( ch >> i * 8 ) & 0b11111111;
-
-				if( !output.write( &out, 1 ) )
-					return true;
-			}
-
-			charNum ++;
-		}
-
-		return false;
-	}
-
 	void close()
 	{
 		inputBits.close();
@@ -331,6 +377,7 @@ public:
 
 bool decompressFile(const char *inFileName, const char *outFileName)
 {
+	// open, check and init instances
 	ifstream input( inFileName, ios::binary | ios::in );
 	ofstream output( outFileName, ios::binary | ios::out );
 	if( !input.is_open() || !output.is_open() )
@@ -340,16 +387,22 @@ bool decompressFile(const char *inFileName, const char *outFileName)
 
 	branchClass top;
 	bitClass inputBit( input );
-	
-	if( top.Read( inputBit ) )
-		return false;
-
 	InOutClass reading( inputBit, output, top );
+
+	// reads and saves accordingly whole tree of input
+	// -> recursivelly calls itself, so it reaches the bottom lists
+	if( top.Read( inputBit ) ) {
+		top.Clear();
+		return false;
+	}
+
+	// reading coded characters from input and directly writing encoded characters in output
 	if( reading.Read() ) {
 		reading.close();
 		return false;
 	}
 
+	// clears allocated tree and closes streams
 	reading.close();
 	
 	return true;
@@ -418,6 +471,8 @@ int main(void)
 	assert(identicalFiles("tests/extra9.orig", "tempfile"));
 
 	assert(decompressFile("tests/special0.huf", "tempfile"));
+
+	assert(!decompressFile("tests/special1.huf", "tempfile"));
 
 	return 0;
 }
