@@ -15,35 +15,87 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+//
+
+class Company
+{
+private:
+	unsigned int sumIncome = 0;
+
+public:
+
+	const string & name;
+	const string & addr;
+	const string & taxID;
+
+	Company( const string &name,
+			 const string &addr,
+			 const string &taxID )
+	:	name( name ),
+		addr( addr ),
+		taxID( taxID )
+	{}
+
+	void AddSum(uint add)
+	{
+		sumIncome += add;
+	}
+
+	uint SumIncome() { return sumIncome; }
+
+};
+
+//
+
 class CVATRegister
 {
+private:
+
+	vector<Company> listById;
+	vector<vector<Company>> listByName;
+	vector<uint> faktury;
+
 public:
 	CVATRegister(void);
 	~CVATRegister(void);
+	
 	bool newCompany(const string &name,
 					const string &addr,
 					const string &taxID);
+	
+	//
+	
 	bool cancelCompany(const string &name,
 					   const string &addr);
 	bool cancelCompany(const string &taxID);
+	
+	//
+
 	bool invoice(const string &taxID,
 				 unsigned int amount);
 	bool invoice(const string &name,
 				 const string &addr,
 				 unsigned int amount);
+
+	//
+
 	bool audit(const string &name,
 			   const string &addr,
 			   unsigned int &sumIncome) const;
 	bool audit(const string &taxID,
 			   unsigned int &sumIncome) const;
+	
+	//
+
 	bool firstCompany(string &name,
 					  string &addr) const;
 	bool nextCompany(string &name,
 					 string &addr) const;
+
+	//
+
 	unsigned int medianInvoice(void) const;
 
-private:
-	// todo
 };
 
 #ifndef __PROGTEST__
