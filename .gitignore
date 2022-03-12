@@ -1,0 +1,4 @@
+#ignoring these
+*.out
+tempfile
+build
