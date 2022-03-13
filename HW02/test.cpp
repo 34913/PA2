@@ -54,19 +54,19 @@ private:
 	vector<vector<Company>> listByName;
 	vector<uint> faktury;
 
-	const string & CompareFindByID( uint pos )
+	const string & CompareFindByID( uint *pos )
 	{
-		return listById[ pos ].taxID;
+		return listById[ *pos ].taxID;
 	}
 	
-	const string & CompareFindByAddr( uint pos )
+	const string & CompareFindByAddr( uint *pos )
 	{
-		return listByName[ pos ][ *(&pos + 1) ].addr;
+		return listByName[ pos[ 0 ] ][ pos[ 1 ] ].addr;
 	}
 
-	const string & CompareFindByName( uint pos )
+	const string & CompareFindByName( uint *pos )
 	{
-		return listByName[ pos ][ 0 ].name;
+		return listByName[ pos[ 0 ] ][ 0 ].name;
 	}
 
 	void StrToLower( const string & str, string & output )
@@ -82,25 +82,25 @@ private:
 
 	//
 
-	bool Find( const string & taxID,
+	bool Find( const string & str,
 			   int from,
 			   int to,
-			   const string &(CVATRegister::*compareFunc)( uint ),
-			   int &pos )
+			   const string &(CVATRegister::*compareFunc)( uint * ),
+			   uint *pos )
 	{
-		pos = from + ( to - from ) / 2;
-		const string & compare = (this->*compareFunc)( pos );
-
-		cout << "b" << endl << pos << " " << compare << endl;
-		if( compare == taxID )
-			return true;
-		else if( to - from == 1 )
+		if( to - from < 1 )
 			return false;
 
-		if( taxID > compare )
-			return Find( taxID, pos + 1, to, compareFunc, pos );
+		*pos = from + ( to - from ) / 2;
+
+		int compare = str.compare( (this->*compareFunc)( pos ) );
+		if( compare == 0 )
+			return true;
+
+		if( compare > 0 )
+			return Find( str, *pos + 1, to, compareFunc, pos );
 		else
-			return Find( taxID, from, pos - 1, compareFunc, pos );
+			return Find( str, from, *pos - 1, compareFunc, pos );
 
 	}
 
@@ -119,7 +119,7 @@ public:
 		StrToLower( addr, newAddr );
 		Company created = Company( newName, newAddr, taxID );
 
-		int posN[2], posID;
+		uint posN[2], posID;
 		if( listById.size() == 0 ) {
 			listById.insert( listById.begin(), created );
 			
@@ -129,30 +129,42 @@ public:
 			return true;
 		}
 
-		if( Find( created.taxID, 0, listById.size(), &CVATRegister::CompareFindByID, posID ) )
+		if( Find( created.taxID, 0, listById.size(), &CVATRegister::CompareFindByID, &posID ) )
 			return false;
 
-		if( Find( created.name, 0, listByName.size(), &CVATRegister::CompareFindByName, posN[0] ) ) {
-			//if( Find( created.addr, 0, listByName[ posN[1] ].size(), &CVATRegister::CompareFindByAddr, posN[1]) )
-			//	return false;
+		listById.insert( listById.begin() + posID, created );
+
+		if( Find( created.name, 0, listByName.size(), &CVATRegister::CompareFindByName, posN ) ) {
+			if( Find( created.addr, 0, listByName[ posN[ 0 ] ].size(), &CVATRegister::CompareFindByAddr, posN ) )
+				return false;
 		}
 		else {
-		// 	listByName.insert( listByName.begin() + posN[ 0 ], vector<Company>() );
-		// 	listByName[ posN[ 0 ] + 1 ].insert( listByName[ 0 ].begin(), created );
+			listByName.insert( listByName.begin() + posN[ 0 ], vector<Company>() );
+			listByName[ posN[ 1 ] ].insert( listByName[ 0 ].begin(), created );
 			return true;
 		}
 
+		listByName[ posN[ 0 ] ].insert( listByName[ posN[ 0 ] ].begin() + posN[ 1 ], created );
+
+		return true;
+	}
+
+	void PrintOut()
+	{
 		cout << endl;
 
 		for( int i = 0; i < listById.size(); i++ )
-			cout << listById[ i ].name << " " << listById[ i ].addr << " " << listById[ i ].taxID << endl;
+			cout <<listById[ i ].taxID << endl;
 		
 		cout << endl;
 
-		listById.insert( listById.begin() + posID, created );
-		
+		for( int i = 0; i < listByName.size(); i++ ) {
+			cout << listByName[ i ][ 0 ].name << endl;
+			for( int y = 0; y < listByName[ i ].size(); y++ )
+				cout << "\t" << listByName[ i ][ y ].addr << endl;
+		}
 
-		return true;
+		cout << endl;
 	}
 	
 	//
@@ -200,13 +212,13 @@ int main(void)
 	string name, addr;
 	unsigned int sumIncome;
 
-
-
 	CVATRegister b1;
 	assert(b1.newCompany("ACME", "Thakurova", "666/666"));
 	assert(b1.newCompany("ACME", "Kolejni", "666/666/666"));
 	assert(b1.newCompany("Dummy", "Thakurova", "123456"));
 	
+	b1.PrintOut();
+
 	/*
 	assert(b1.invoice("666/666", 2000));
 	assert(b1.medianInvoice() == 2000);
