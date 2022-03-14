@@ -127,17 +127,18 @@ private:
 	}
 
 public:
-	CVATRegister(void)
+
+	CVATRegister( void )
 	{}
-	~CVATRegister(void)
+	~CVATRegister( void )
 	{
 		for( uint i = 0; i < (uint)listById.size(); i++ )
 			delete listById[ i ];
 	}
 	
-	bool newCompany(const string &name,
-					const string &addr,
-					const string &taxID)
+	bool newCompany( const string &name,
+					 const string &addr,
+					 const string &taxID )
 	{
 		Company *created = new Company( name, addr, taxID );
 
@@ -175,7 +176,7 @@ public:
 		return true;
 	}
 
-	void PrintOut()
+	void PrintOut( void )
 	{
 		cout << endl;
 
@@ -194,21 +195,80 @@ public:
 	}
 	
 	//
-	
-	/*
 
-	bool cancelCompany(const string &name,
-					   const string &addr);
-	bool cancelCompany(const string &taxID);
+	bool cancelCompany( const string &name,
+					    const string &addr )
+	{
+		uint posID, posN[2];
+		
+		Company *toErase;
+		if( !Find( name, 0, listByName.size() - 1, &CVATRegister::CompareFindByName, posN ) )
+			return false;
+
+		if( !Find( addr, 0, listByName[ posN[ 0 ] ].size() - 1, &CVATRegister::CompareFindByAddr, posN ) )
+			return false;
+
+		toErase = listByName[ posN[ 0 ] ][ posN[ 1 ] ];
+
+		if( !Find( toErase->taxID, 0, listById.size() - 1, &CVATRegister::CompareFindByID, &posID ) ) {
+			cout << "internal error " << __LINE__ << endl;
+
+			return false;
+		}
+
+		listByName[ posN[ 0 ] ].erase( listByName[ posN[ 0 ] ].begin() + posN[ 1 ] );
+		listById.erase( listById.begin() + posID );
+
+		delete toErase;
+
+		return true;
+	}
 	
+	bool cancelCompany( const string &taxID )
+	{
+		uint posID, posN[2];
+		
+		Company *toErase;
+		if( !Find( taxID, 0, listById.size() - 1, &CVATRegister::CompareFindByID, &posID ) )
+			return false;
+
+		toErase = listByName[ posN[ 0 ] ][ posN[ 1 ] ];
+
+		if( !Find( toErase->name, 0, listByName.size() - 1, &CVATRegister::CompareFindByName, posN ) ) {
+			cout << "internal error " << __LINE__ << endl;
+			return false;
+		}
+
+		if( !Find( toErase->addr, 0, listByName[ posN[ 0 ] ].size() - 1, &CVATRegister::CompareFindByAddr, posN ) ) {
+			cout << "internal error " << __LINE__ << endl;
+			return false;
+		}
+
+		listByName[ posN[ 0 ] ].erase( listByName[ posN[ 0 ] ].begin() + posN[ 1 ] );
+		listById.erase( listById.begin() + posID );
+
+		delete toErase;
+
+		return true;
+	}
+
 	//
 
-	bool invoice(const string &taxID,
-				 unsigned int amount);
-	bool invoice(const string &name,
-				 const string &addr,
-				 unsigned int amount);
+	bool invoice( const string &taxID,
+				  unsigned int amount )
+	{
+		
+		return true;
+	}
 
+	bool invoice( const string &name,
+				  const string &addr,
+				  unsigned int amount )
+	{
+
+		return true;
+	}
+	/*
 	//
 
 	bool audit(const string &name,
@@ -233,7 +293,7 @@ public:
 };
 
 #ifndef __PROGTEST__
-int main(void)
+int main( void )
 {
 	string name, addr;
 	unsigned int sumIncome;
