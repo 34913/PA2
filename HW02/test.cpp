@@ -56,12 +56,6 @@ public:
 
 	uint SumIncome() { return sumIncome; }
 
-	Company operator=( Company x )
-	{ 
-		cout << "why" << endl;
-		return x;
-	}
-
 };
 
 //
@@ -70,26 +64,26 @@ class CVATRegister
 {
 
 private:
-	vector<Company> listById;
-	vector<vector<Company>> listByName;
+	vector<Company*> listById;
+	vector<vector<Company*>> listByName;
 	vector<uint> faktury;
 
 	const string & CompareFindByID( uint *pos, uint temp )
 	{
 		*pos = temp;
-		return listById[ temp ].taxID;
+		return listById[ temp ]->taxID;
 	}
 	
 	const string & CompareFindByAddr( uint *pos, uint temp )
 	{
 		pos[ 1 ] = temp;
-		return listByName[ pos[ 0 ] ][ temp ].addr;
+		return listByName[ pos[ 0 ] ][ temp ]->addr;
 	}
 
 	const string & CompareFindByName( uint *pos, uint temp )
 	{
 		pos[ 0 ] = temp;
-		return listByName[ temp ][ 0 ].name;
+		return listByName[ temp ][ 0 ]->name;
 	}
 
 	//
@@ -136,34 +130,41 @@ public:
 	CVATRegister(void)
 	{}
 	~CVATRegister(void)
-	{}
+	{
+		for( uint i = 0; i < (uint)listById.size(); i++ )
+			delete listById[ i ];
+	}
 	
 	bool newCompany(const string &name,
 					const string &addr,
 					const string &taxID)
 	{
-		Company created( name, addr, taxID );
+		Company *created = new Company( name, addr, taxID );
 
 		uint posN[2], posID;
 		if( listById.size() == 0 ) {
 			listById.insert( listById.begin(), created );
 			
-			listByName.insert( listByName.begin(), vector<Company>() );
+			listByName.insert( listByName.begin(), vector<Company*>() );
 			listByName[ 0 ].insert( listByName[ 0 ].begin(), created );
 
 			return true;
 		}
 
-		if( Find( created.taxID, 0, listById.size() - 1, &CVATRegister::CompareFindByID, &posID ) )
+		if( Find( created->taxID, 0, listById.size() - 1, &CVATRegister::CompareFindByID, &posID ) ) {
+			delete created;
 			return false;
+		}
 
-		if( Find( created.name, 0, listByName.size() - 1, &CVATRegister::CompareFindByName, posN ) ) {
-			if( Find( created.addr, 0, listByName[ posN[ 0 ] ].size() - 1, &CVATRegister::CompareFindByAddr, posN ) )
+		if( Find( created->name, 0, listByName.size() - 1, &CVATRegister::CompareFindByName, posN ) ) {
+			if( Find( created->addr, 0, listByName[ posN[ 0 ] ].size() - 1, &CVATRegister::CompareFindByAddr, posN ) ) {
+				delete created;
 				return false;
+			}
 		}
 		else {
 			listById.insert( listById.begin() + posID, created );
-			listByName.insert( listByName.begin() + posN[ 0 ], vector<Company>() );
+			listByName.insert( listByName.begin() + posN[ 0 ], vector<Company*>() );
 			listByName[ posN[ 0 ] ].insert( listByName[ posN[ 0 ] ].begin(), created );
 			return true;
 		}
@@ -178,15 +179,15 @@ public:
 	{
 		cout << endl;
 
-		for( int i = 0; i < (int)listById.size(); i++ )
-			cout << listById[ i ].taxID << endl;
+		for( uint i = 0; i < (uint)listById.size(); i++ )
+			cout << listById[ i ]->taxID << endl;
 		
 		cout << endl;
 
-		for( int i = 0; i < (int)listByName.size(); i++ ) {
-			cout << listByName[ i ][ 0 ].name << endl;
+		for( uint i = 0; i < (uint)listByName.size(); i++ ) {
+			cout << listByName[ i ][ 0 ]->name << endl;
 			for( int y = 0; y < (int)listByName[ i ].size(); y++ )
-				cout << "\t" << listByName[ i ][ y ].addr << endl;
+				cout << "\t" << listByName[ i ][ y ]->addr << endl;
 		}
 
 		cout << endl;
@@ -293,9 +294,6 @@ int main(void)
 	assert(b2.newCompany("Dummy", "Kolejni", "123456"));
 	assert(!b2.newCompany("AcMe", "kOlEjNi", "1234"));
 	assert(b2.newCompany("Dummy", "Thakurova", "ABCDEF"));
-	b2.newCompany("ABD", "lol", "ABCDEFG");
-	b2.newCompany("abd", "pol5", "ABCDEFE");
-	b2.newCompany("abd", "pol5asd", "ABCDEf");
 
 	b2.PrintOut();
 
