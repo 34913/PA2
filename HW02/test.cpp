@@ -35,8 +35,7 @@ string StrToLower( const string & str )
 class Company
 {
 private:
-	unsigned long int sumIncome = 0;
-
+	unsigned int sumIncome = 0;
 public:
 
 	const string name;
@@ -84,12 +83,12 @@ private:
 	bool FindID( const string & str,
 			     int from,
 			     int to,
-			     uint & pos )
+				 uint & pos )
 	{
 		if( to - from < 0 )
 			return false;
 
-		if( to - from == 1 )
+		if( to - from == 0 )
 			pos = from;
 		else
 			pos = from + ( to - from ) / 2;
@@ -115,13 +114,13 @@ private:
 			    int from,
 			    int to,
 			    const string &(CVATRegister::*compareFunc)( uint *, uint ),
-			    uint *pos )
+				uint *pos )
 	{
 		if( to - from < 0 )
 			return false;
 
 		uint temp;
-		if( to - from == 1 )
+		if( to - from == 0 )
 			temp = from;
 		else
 			temp = from + ( to - from ) / 2;
@@ -133,9 +132,9 @@ private:
 		else if( to - from == 0 ) {
 			if( compare > 0 ) {
 				if( compareFunc == &CVATRegister::CompareFindByAddr )
-					pos[ 1 ] += 1;
+					pos[ 1 ]++;
 				else
-					pos[ 0 ] += 1;
+					pos[ 0 ]++;
 			}
 
 			return false;
@@ -211,16 +210,8 @@ public:
 		cout << endl;
 
 		for( uint i = 0; i < (uint)listById.size(); i++ )
-			cout << listById[ i ]->taxID << endl;
+			cout << listById[ i ]->taxID << " - " << listById[ i ]->SumIncome() << endl;
 		
-		cout << endl;
-
-		for( uint i = 0; i < (uint)listByName.size(); i++ ) {
-			cout << listByName[ i ][ 0 ]->name << endl;
-			for( int y = 0; y < (int)listByName[ i ].size(); y++ )
-				cout << "\t" << listByName[ i ][ y ]->addr << endl;
-		}
-
 		cout << endl;
 	}
 	
@@ -231,14 +222,13 @@ public:
 	{
 		uint posID, posN[2];
 		
-		Company *toErase;
 		if( !FindN( name, 0, listByName.size() - 1, &CVATRegister::CompareFindByName, posN ) )
 			return false;
 
 		if( !FindN( addr, 0, listByName[ posN[ 0 ] ].size() - 1, &CVATRegister::CompareFindByAddr, posN ) )
 			return false;
 
-		toErase = listByName[ posN[ 0 ] ][ posN[ 1 ] ];
+		Company *toErase = listByName[ posN[ 0 ] ][ posN[ 1 ] ];
 
 		if( !FindID( toErase->taxID, 0, listById.size() - 1, posID ) ) {
 			cout << "internal error " << __LINE__ << endl;
@@ -247,6 +237,9 @@ public:
 		}
 
 		listByName[ posN[ 0 ] ].erase( listByName[ posN[ 0 ] ].begin() + posN[ 1 ] );
+		if( listByName[ posN[ 0 ] ].size() == 0 )
+			listByName.erase( listByName.begin() + posN[ 0 ] );
+		
 		listById.erase( listById.begin() + posID );
 
 		delete toErase;
@@ -258,11 +251,10 @@ public:
 	{
 		uint posID, posN[2];
 		
-		Company *toErase;
 		if( !FindID( taxID, 0, listById.size() - 1, posID ) )
 			return false;
 
-		toErase = listById[ posID ];
+		Company *toErase = listById[ posID ];
 
 		if( !FindN( toErase->name, 0, listByName.size() - 1, &CVATRegister::CompareFindByName, posN ) ) {
 			cout << "internal error " << __LINE__ << endl;
@@ -275,6 +267,9 @@ public:
 		}
 
 		listByName[ posN[ 0 ] ].erase( listByName[ posN[ 0 ] ].begin() + posN[ 1 ] );
+		if( listByName[ posN[ 0 ] ].size() == 0 )
+			listByName.erase( listByName.begin() + posN[ 0 ] );
+
 		listById.erase( listById.begin() + posID );
 
 		delete toErase;
@@ -316,25 +311,83 @@ public:
 		return true;
 	}
 	
-	/*
 	//
 
-	bool audit(const string &name,
-			   const string &addr,
-			   unsigned int &sumIncome) const;
-	bool audit(const string &taxID,
-			   unsigned int &sumIncome) const;
+	// ty metody jsou const, protoze si na nas evidentne vylevaji zlost
+	// takze nemuzes menit cokoliv v const metodach
+	// *neni nic lepsiho, nez pevne zadefinovat kostru tridy aby sis ji nemohl menit*
+	// efektivne to znamena
+	//	-> bud pouzit vsude mutable a dostat burn
+	//	-> jit si hodit masli lol
+	// -> kopirovat to nekam jinam a pouzit to
+
+	bool audit( const string &name,
+			    const string &addr,
+			    unsigned int &sumIncome ) const
+	{
+		uint posN[ 2 ];
+		if( !FindN( name, 0, listByName.size() - 1, &CVATRegister::CompareFindByName, posN ) )
+			return false;
+
+		if( !FindN( addr, 0, listByName[ posN[ 0 ] ].size() - 1, &CVATRegister::CompareFindByAddr, posN ) )
+			return false;
+
+		sumIncome = listByName[ posN[ 0 ] ][ posN[ 1 ] ]->SumIncome();
+
+		return true;
+	}
+	bool audit( const string &taxID,
+			    unsigned int &sumIncome ) const
+	{
+		uint posID;
+		if( !FindID( taxID, 0, listById.size() - 1, posID ) )
+			return false;
+
+		sumIncome = listById[ posID ]->SumIncome();
+
+		return true;
+	}
 	
 	//
 
-	bool firstCompany(string &name,
-					  string &addr) const;
-	bool nextCompany(string &name,
-					 string &addr) const;
+	bool firstCompany( string &name,
+					   string &addr ) const
+	{
+		if( listByName.size() == 0 )
+			return false;
+
+		name = listByName[ 0 ][ 0 ]->name;
+		addr = listByName[ 0 ][ 0 ]->addr;
+
+		return true;
+	}
+	bool nextCompany( string &name,
+					  string &addr ) const
+	{
+		uint posN[2];
+		if( !FindN( name, 0, listByName.size() - 1, &CVATRegister::CompareFindByName, posN ) )
+			return false;
+		
+		if( !FindN( addr, 0, listByName[ posN[ 0 ] ].size() - 1, &CVATRegister::CompareFindByAddr, posN ) )
+			return false;
+
+		posN[ 1 ]++;
+		if( posN[ 1 ] == listByName[ posN[ 0 ] ].size() ) {
+			posN[ 0 ]++;
+			if( posN[ 0 ] == listByName.size() )
+				return false;
+			posN[ 1 ] = 0;
+		}
+		
+		Company* ptr = listByName[ posN[ 0 ] ][ posN[ 1 ] ];
+
+		name = ptr->name;
+		addr = ptr->addr;
+
+		return true;
+	}
 
 	//
-
-	*/
 
 	unsigned int medianInvoice(void) const
 	{
@@ -363,9 +416,6 @@ int main( void )
 	assert(b1.newCompany("ACME", "Thakurova", "666/666"));
 	assert(b1.newCompany("ACME", "Kolejni", "666/666/666"));
 	assert(b1.newCompany("Dummy", "Thakurova", "123456"));
-	
-	b1.PrintOut();
-
 	assert(b1.invoice("666/666", 2000));
 	assert(b1.medianInvoice() == 2000);
 	assert(b1.invoice("666/666/666", 3000));
@@ -374,8 +424,6 @@ int main( void )
 	assert(b1.medianInvoice() == 3000);
 	assert(b1.invoice("aCmE", "Kolejni", 5000));
 	assert(b1.medianInvoice() == 4000);
-
-	/*
 	assert(b1.audit("ACME", "Kolejni", sumIncome) && sumIncome == 8000);
 	assert(b1.audit("123456", sumIncome) && sumIncome == 4000);
 	assert(b1.firstCompany(name, addr) && name == "ACME" && addr == "Kolejni");
@@ -408,7 +456,6 @@ int main( void )
 	assert(!b1.nextCompany(name, addr));
 	assert(b1.cancelCompany("123456"));
 	assert(!b1.firstCompany(name, addr));
-*/
 
 	CVATRegister b2;
 		
@@ -416,9 +463,6 @@ int main( void )
 	assert(b2.newCompany("Dummy", "Kolejni", "123456"));
 	assert(!b2.newCompany("AcMe", "kOlEjNi", "1234"));
 	assert(b2.newCompany("Dummy", "Thakurova", "ABCDEF"));
-
-	b2.PrintOut();
-
 	assert(b2.medianInvoice() == 0);
 	assert(b2.invoice("ABCDEF", 1000));
 	assert(b2.medianInvoice() == 1000);
@@ -429,8 +473,6 @@ int main( void )
 	assert(!b2.invoice("1234567", 100));
 	assert(!b2.invoice("ACE", "Kolejni", 100));
 	assert(!b2.invoice("ACME", "Thakurova", 100));
-
-	/*
 	assert(!b2.audit("1234567", sumIncome));
 	assert(!b2.audit("ACE", "Kolejni", sumIncome));
 	assert(!b2.audit("ACME", "Thakurova", sumIncome));
@@ -444,7 +486,6 @@ int main( void )
 	assert(b2.cancelCompany("ACME", "Kolejni"));
 	assert(!b2.cancelCompany("ACME", "Kolejni"));
 
-	*/
 	return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
