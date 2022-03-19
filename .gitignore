@@ -2,3 +2,4 @@
 *.out
 tempfile
 build
+.vscode
