@@ -78,6 +78,11 @@ public:
 		date = mktime( t );
 	}
 
+	int operator - ( const CDate x ) const
+	{
+		return difftime( date, x.date ) / 86400;
+	}
+
 	friend ostream & operator << ( ostream & os, const CDate x )
 	{
 		tm *temp = localtime( &x.date );
