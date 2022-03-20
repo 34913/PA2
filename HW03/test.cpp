@@ -34,7 +34,63 @@ ios_base &(*date_format(const char *fmt))(ios_base &x)
 
 class CDate
 {
-	// todo
+	time_t date;
+	// tm *date;
+
+public:
+
+    // konstruktor s parametry (y,m,d) vytvoří novou instanci třídy s datem nastaveným podle předaných hodnot. Konstruktor musí kontrolovat, zda zadané datum je platné. Pokud platné není, musí vyvolat výjimku InvalidDateException,
+    // operátorem + lze k instanci CDate přičíst celé číslo a tím se posunout vpřed o zadaný počet dní (vzad pro záporné číslo),
+	// operátorem - lze od instance CDate odečíst celé číslo a tím se posunout vzad o zadaný počet dní (vpřed pro záporné číslo),
+	//
+    // operátorem - lze od sebe odečíst dvě instance CDate a tím získat počet dní mezi těmito dvěma daty,
+    // operátory ++ a -- v prefixové a v postfixové notaci lze zvyšovat/snižovat datum o 1 den, operátory mají obvyklé chování,
+    // operátory ==, !=, >, >=, < a <= lze porovnávat dvojici instancí CDate, v této relaci budou data v budoucnosti větší než data v minulosti,
+    // operátorem << lze zobrazit instanci CDate v zadaném streamu. Při zobrazování se používá ISO formát (%Y-%m-%d, tedy např. 2000-01-31). V povinných testech bude vždy použit tento implicitní formát. Bonusové testy požadují implementaci manipulátoru date_format, kterým lze formát řídit.
+    // operátorem >> lze přečíst instanci CDate ze zadaného streamu. V povinných testech je na vstupu očekáváno datum v ISO formátu %Y-%m-%d. Pokud se nepodaří datum načíst (formát, neplatné datum, ...), operátor zajistí nastavení fail bitu a ponechá původní obsah instance CDate. Stejně jako výstupní operátor, i vstup lze řídit pomocí manipulátoru date_format, tato možnost je požadovaná v bonusovém testu.
+
+
+	CDate( int y, int m, int d )
+	{
+		tm *temp = new tm();
+		temp->tm_mday = d;
+		temp->tm_mon = m;
+		temp->tm_year = y - 1900;
+
+		date = mktime( temp );
+		// cout << ctime( &date );
+
+		tm *tempTM = localtime( &date );
+
+		// cout << asctime( tempTM ) << endl;
+
+		if( tempTM->tm_year != temp->tm_year
+			|| tempTM->tm_mon != temp->tm_mon
+			|| tempTM->tm_mday != temp->tm_mday )
+			throw new InvalidDateException();
+
+		delete temp;
+
+	}
+
+	CDate( tm *t )
+	{
+		date = mktime( t );
+	}
+
+	friend ostream & operator << ( ostream & os, const CDate x )
+	{
+		tm *temp = localtime( &x.date );
+		stringstream ss("");
+		ss << std::setw( 4 ) << std::setfill( '0' ) << 1900 + temp->tm_year << '-'
+			<< std::setw( 2 ) << std::setfill( '0' ) << temp->tm_mon << '-'
+			<<std::setw( 2 ) << std::setfill( '0' ) << temp->tm_mday;
+		os << ss.str();
+		os.flush();
+		cout << ss.str() << endl;
+		return os;
+	}
+
 };
 
 #ifndef __PROGTEST__
@@ -63,6 +119,9 @@ int main(void)
 	oss.str("");
 	oss << b;
 	assert(oss.str() == "2004-08-13");
+
+	/*
+
 	assert(b - a == 185);
 	assert((b == a) == false);
 	assert((b != a) == true);
@@ -263,6 +322,7 @@ int main(void)
 	oss.str("");
 	oss << g;
 	assert(oss.str() == "2000-01-01");
+*/
 
 	return EXIT_SUCCESS;
 }
