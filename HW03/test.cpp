@@ -130,6 +130,36 @@ public:
 		return !( *this > x );
 	}
 
+    // prefix
+    CDate & operator ++()
+    {
+		date += 86400;
+        return *this;
+    }
+ 
+    // postfix
+    CDate operator ++( int )
+    {
+        CDate old = *this;
+        operator++();
+        return old;
+    }
+
+    // prefix
+    CDate & operator --()
+    {
+		date -= 86400;
+        return *this;
+    }
+ 
+    // postfix
+    CDate operator --( int )
+    {
+        CDate old = *this;
+        operator--();
+        return old;
+    }
+
 	friend ostream & operator << ( ostream & os, const CDate x )
 	{
 		tm *temp = localtime( &x.date );
@@ -186,8 +216,6 @@ int main(void)
 	assert((c < a) == false);
 	assert((c >= a) == true);
 	assert((c > a) == false);
-
-	/*
 
 	a = ++c;
 	oss.str("");
@@ -249,8 +277,6 @@ int main(void)
 	oss.str("");
 	oss << d;
 	assert(oss.str() == "2000-02-29");
-
-	*/
 
 	/*
 
