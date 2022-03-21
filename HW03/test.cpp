@@ -49,7 +49,6 @@ public:
     // operátorem << lze zobrazit instanci CDate v zadaném streamu. Při zobrazování se používá ISO formát (%Y-%m-%d, tedy např. 2000-01-31). V povinných testech bude vždy použit tento implicitní formát. Bonusové testy požadují implementaci manipulátoru date_format, kterým lze formát řídit.
     // operátorem >> lze přečíst instanci CDate ze zadaného streamu. V povinných testech je na vstupu očekáváno datum v ISO formátu %Y-%m-%d. Pokud se nepodaří datum načíst (formát, neplatné datum, ...), operátor zajistí nastavení fail bitu a ponechá původní obsah instance CDate. Stejně jako výstupní operátor, i vstup lze řídit pomocí manipulátoru date_format, tato možnost je požadovaná v bonusovém testu.
 
-
 	CDate( int y, int m, int d )
 	{
 		tm *temp = new tm();
@@ -61,7 +60,6 @@ public:
 		// cout << ctime( &date );
 
 		tm *tempTM = localtime( &date );
-
 		// cout << asctime( tempTM ) << endl;
 
 		if( tempTM->tm_year != temp->tm_year
@@ -70,7 +68,6 @@ public:
 			throw new InvalidDateException();
 
 		delete temp;
-
 	}
 
 	CDate( tm *t )
@@ -78,35 +75,59 @@ public:
 		date = mktime( t );
 	}
 	
+	CDate( time_t t )
+	:	date( t )
+	{}
 
-	
 	int operator - ( const CDate x ) const
 	{
 		return difftime( date, x.date ) / 86400;
 	}
 
-
-	CDate( time_t date )
-	:	date(date)
-	{}
 	CDate operator + ( int days )
 	{
 		if( days < 0 )
 			return *this - abs( days );
-		tm *temp = localtime( &date );
-		temp->tm_mday += days;
 
-		return CDate( mktime( temp ) );
+		return CDate( date + days * 86400 );
 	}
 
 	CDate operator - ( int days )
 	{
 		if( days < 0 )
 			return *this + abs( days );
-		tm *temp = localtime( &date );
-		temp->tm_mday -= days;
 
-		return CDate( mktime( temp ) );
+		return CDate( date - days * 86400 );
+	}
+
+	bool operator ==( const CDate & x )
+	{
+		return ( date == x.date );
+	}
+
+	bool operator < ( const CDate & x )
+	{
+		return date < x.date;
+	}
+
+	bool operator > ( const CDate & x )
+	{
+		return date > x.date;
+	}
+
+	bool operator != ( const CDate & x )
+	{
+		return ( date != x.date );
+	}
+
+	bool operator >= ( const CDate & x )
+	{
+		return !( *this < x );
+	}
+
+	bool operator <= ( const CDate & x )
+	{
+		return !( *this > x );
 	}
 
 	friend ostream & operator << ( ostream & os, const CDate x )
@@ -152,8 +173,6 @@ int main(void)
 	oss << b;
 	assert(oss.str() == "2004-08-13");
 
-	/*
-
 	assert(b - a == 185);
 	assert((b == a) == false);
 	assert((b != a) == true);
@@ -167,6 +186,9 @@ int main(void)
 	assert((c < a) == false);
 	assert((c >= a) == true);
 	assert((c > a) == false);
+
+	/*
+
 	a = ++c;
 	oss.str("");
 	oss << a << " " << c;
@@ -227,6 +249,10 @@ int main(void)
 	oss.str("");
 	oss << d;
 	assert(oss.str() == "2000-02-29");
+
+	*/
+
+	/*
 
 	//-----------------------------------------------------------------------------
 	// bonus test examples
