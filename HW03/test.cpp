@@ -54,7 +54,7 @@ public:
 	{
 		tm *temp = new tm();
 		temp->tm_mday = d;
-		temp->tm_mon = m;
+		temp->tm_mon = m - 1;
 		temp->tm_year = y - 1900;
 
 		date = mktime( temp );
@@ -77,10 +77,36 @@ public:
 	{
 		date = mktime( t );
 	}
+	
 
+	
 	int operator - ( const CDate x ) const
 	{
 		return difftime( date, x.date ) / 86400;
+	}
+
+
+	CDate( time_t date )
+	:	date(date)
+	{}
+	CDate operator + ( int days )
+	{
+		if( days < 0 )
+			return *this - abs( days );
+		tm *temp = localtime( &date );
+		temp->tm_mday += days;
+
+		return CDate( mktime( temp ) );
+	}
+
+	CDate operator - ( int days )
+	{
+		if( days < 0 )
+			return *this + abs( days );
+		tm *temp = localtime( &date );
+		temp->tm_mday -= days;
+
+		return CDate( mktime( temp ) );
 	}
 
 	friend ostream & operator << ( ostream & os, const CDate x )
@@ -88,7 +114,7 @@ public:
 		tm *temp = localtime( &x.date );
 		stringstream ss("");
 		ss << std::setw( 4 ) << std::setfill( '0' ) << 1900 + temp->tm_year << '-'
-			<< std::setw( 2 ) << std::setfill( '0' ) << temp->tm_mon << '-'
+			<< std::setw( 2 ) << std::setfill( '0' ) << temp->tm_mon + 1 << '-'
 			<<std::setw( 2 ) << std::setfill( '0' ) << temp->tm_mday;
 		os << ss.str();
 		os.flush();
@@ -116,6 +142,7 @@ int main(void)
 	oss.str("");
 	oss << c;
 	assert(oss.str() == "2004-02-10");
+
 	a = a + 1500;
 	oss.str("");
 	oss << a;
