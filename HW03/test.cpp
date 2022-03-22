@@ -57,10 +57,8 @@ public:
 		temp->tm_year = y - 1900;
 
 		date = mktime( temp );
-		// cout << ctime( &date );
 
 		tm *tempTM = localtime( &date );
-		// cout << asctime( tempTM ) << endl;
 
 		if( tempTM->tm_year != temp->tm_year
 			|| tempTM->tm_mon != temp->tm_mon
@@ -171,6 +169,41 @@ public:
 		os.flush();
 		cout << ss.str() << endl;
 		return os;
+	}
+
+	friend istream & operator >>( istream & is, CDate & x )
+	{
+		string str;
+		is >> str;
+
+		int arr[ 3 ] = { 0, 0, 0 };
+
+		int last = 0;
+		int delimiter;
+		string sub;
+		for( int i = 0; i < 3; i++ ) {
+			delimiter = str.find( '-', last );
+			if( delimiter == -1 )
+				delimiter = str.length() - last;
+			else
+				delimiter -= last;
+			sub = str.substr( last, delimiter );
+
+			arr[ i ] = atoi( sub.c_str() );
+
+			last = delimiter + last + 1;
+		}
+
+		try {
+			x = CDate( arr[ 0 ], arr[ 1 ], arr[ 2 ] );
+		}
+		catch( ... ) {
+			// error
+			if( false )
+				is.setstate(std::ios::failbit);
+		}
+		
+		return is;
 	}
 
 };
