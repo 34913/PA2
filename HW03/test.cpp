@@ -60,9 +60,9 @@ public:
 
 		tm *tempTM = localtime( &date );
 
-		if( tempTM->tm_year != temp->tm_year
-			|| tempTM->tm_mon != temp->tm_mon
-			|| tempTM->tm_mday != temp->tm_mday )
+		if( tempTM->tm_year != y - 1900
+			|| tempTM->tm_mon != m - 1
+			|| tempTM->tm_mday != d )
 			throw new InvalidDateException();
 
 		delete temp;
@@ -171,7 +171,7 @@ public:
 		return os;
 	}
 
-	friend istream & operator >>( istream & is, CDate & x )
+	friend istream & operator >> ( istream & is, CDate & x )
 	{
 		string str;
 		is >> str;
@@ -181,6 +181,7 @@ public:
 		int last = 0;
 		int delimiter;
 		string sub;
+
 		for( int i = 0; i < 3; i++ ) {
 			delimiter = str.find( '-', last );
 			if( delimiter == -1 )
@@ -198,9 +199,7 @@ public:
 			x = CDate( arr[ 0 ], arr[ 1 ], arr[ 2 ] );
 		}
 		catch( ... ) {
-			// error
-			if( false )
-				is.setstate(std::ios::failbit);
+			is.setstate(std::ios::failbit);
 		}
 		
 		return is;
