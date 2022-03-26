@@ -19,6 +19,7 @@ private:
 
 	uint32_t size = 0;
 	uint32_t allocated = 0;
+	uint32_t pos = 0;
 
 	uint32_t occurs;
 
@@ -33,7 +34,7 @@ public:
 	{
 		size = r->size;
 		allocated = r->allocated;
-
+		pos = r->pos;
 
 		arr = new uint8_t[ allocated ];
 
@@ -41,7 +42,7 @@ public:
 			arr[ i ] = r->arr[ i ];
 	}
 
-	record *Write( uint8_t add, uint32_t pos )
+	record *Write( uint8_t add )
 	{
 		record *use;
 		if( occurs > 1 ) {
@@ -69,14 +70,20 @@ public:
 			}
 		}
 
-		use->arr[ pos ] = add;
+		use->arr[ pos++ ] = add;
 
 		return use;
 	}
 
-	uint8_t Read( uint32_t pos ) { return arr[ pos ]; }
+	uint8_t Read( void ) { return arr[ pos++ ]; }
 
 	void AddOccurs( void ) { occurs++; }
+
+	uint32_t GetSize() { return size; }
+
+	void SetPos( uint32_t pos ) { this->pos = pos; }
+
+	uint32_t GetPos( void ) { return pos; }
 
 };
 
@@ -120,24 +127,38 @@ class CFile
 {
 public:
 	CFile( void )
-	:	size(0),
-		pos(0)
-	{}
+	{
+		size = 1;
+		arr = new record*;
+	}
 	// copy cons, dtor, op=
 
 	bool seek( uint32_t offset )
 	{
-		if( offset > size )
+		if( offset > arr[ size - 1 ].GetSize() )
 			return false;
-		pos = offset;
+		arr[ size - 1 ].SetPos( offset );
 
 		return true;
 	}
 	
 	uint32_t read( uint8_t *dst,
-				   uint32_t bytes );
+				   uint32_t bytes )
+	{
+		for( int i = 0; i < bytes; i++ ) {
+			record* here = arr[ size - 1 ];
+			if( here->GetPos() == here->GetSize() )
+				return i;
+			
+			dst[ i ] = here->Read();
+		}
+		return bytes;
+	}
 	uint32_t write( const uint8_t *src,
-				    uint32_t bytes );
+				    uint32_t bytes )
+	{
+
+	}
 	void truncate( void );
 	uint32_t fileSize( void ) const;
 	void addVersion( void );
@@ -146,9 +167,8 @@ public:
 private:
 	// todo
 
-	uint32_t pos;
+	record **arr = nullptr;
 	uint32_t size;
-
 
 	//
 };
