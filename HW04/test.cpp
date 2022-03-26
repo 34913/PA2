@@ -13,23 +13,36 @@ using namespace std;
 
 /*
 konstruktor
-    implicitní konstruktor vytvoří prázdnou instanci souboru (velikost 0 B, pozice v souboru 0).
+    implicitní konstruktor vytvoří prázdnou instanci souboru (velikost 0 B, pozice v 
+	souboru 0).
 destruktor, op= a kopírující konstruktor
     implementujte, pokud automaticky generovaná varianta nevyhovuje,
 write (data, len)
-    Metoda zapíše daný blok dat (data) o délce len na aktuální pozici. Aktuální pozice v souboru se po zápisu posune za poslední zapsaný bajt. Metoda write přepisuje data (je-li aktuální pozice uvnitř souboru)/rozšiřuje velikost souboru. Návratovou hodnotou je počet zapsaných bajtů.
+    Metoda zapíše daný blok dat (data) o délce len na aktuální pozici. Aktuální 
+	pozice v souboru se po zápisu posune za poslední zapsaný bajt. Metoda write 
+	přepisuje data (je-li aktuální pozice uvnitř souboru)/rozšiřuje velikost souboru. 
+	Návratovou hodnotou je počet zapsaných bajtů.
 read (data, len)
-    Metoda načte požadovaný počet bajtů (len) do pole data. Návratovou hodnotou je počet načtených bajtů (může být menší než len podle aktuální pozice v souboru). Metoda dále posune aktuální pozici v souboru vpřed o přečtený počet bajtů.
+    Metoda načte požadovaný počet bajtů (len) do pole data. Návratovou hodnotou 
+	je počet načtených bajtů (může být menší než len podle aktuální pozice v souboru). 
+	Metoda dále posune aktuální pozici v souboru vpřed o přečtený počet bajtů.
 seek ( pos )
-    metoda přesune aktuální pozici v souboru na pozici pos. Pozice se použije pro následné operace čtení/zápisu. Parametr pos musí být v rozsahu 0 až délka souboru (obě meze včetně). Návratovou hodnotou je true pro úspěch, false pro neúspěch (pozice mimo meze).
+    metoda přesune aktuální pozici v souboru na pozici pos. Pozice se použije pro 
+	následné operace čtení/zápisu. Parametr pos musí být v rozsahu 0 až délka souboru 
+	(obě meze včetně). Návratovou hodnotou je true pro úspěch, false pro neúspěch 
+	(pozice mimo meze).
 truncate()
     metoda zkrátí soubor na velikost danou aktuální pozicí v souboru.
 fileSize()
     metoda vrátí aktuální velikost souboru v bajtech.
 addVersion()
-    metoda archivuje aktuální obsah souboru a aktuální pozici v souboru (vytvoří verzi). Tato verze bude uložena v instanci CFile.
+    metoda archivuje aktuální obsah souboru a aktuální pozici v souboru 
+	(vytvoří verzi). Tato verze bude uložena v instanci CFile.
 undoVersion()
-    metoda vrátí obsah souboru a aktuální pozici v souboru do stavu, ve kterém byly při odpovídajícím předchozím volání addVersion. Vracet se k předchozím verzím lze vícenásobně, dokud existují předchozí archivované verze. Volání undoVersion vrátí true pro úspěch, false pro neúspěch (neexistuje předchozí verze).
+    metoda vrátí obsah souboru a aktuální pozici v souboru do stavu, ve kterém 
+	byly při odpovídajícím předchozím volání addVersion. Vracet se k předchozím 
+	verzím lze vícenásobně, dokud existují předchozí archivované verze. Volání 
+	undoVersion vrátí true pro úspěch, false pro neúspěch (neexistuje předchozí verze).
 */
 
 class CFile
@@ -37,7 +50,14 @@ class CFile
 public:
 	CFile( void );
 	// copy cons, dtor, op=
-	bool seek( uint32_t offset );
+	bool seek( uint32_t offset )
+	{
+		if( offset > size )
+			return false;
+		pos = offset;
+
+		return true;
+	}
 	uint32_t read( uint8_t *dst,
 				   uint32_t bytes );
 	uint32_t write( const uint8_t *src,
@@ -50,6 +70,8 @@ public:
 private:
 	// todo
 
+	uint32_t pos;
+	uint32_t size = 0;
 
 
 	//
