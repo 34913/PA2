@@ -9,6 +9,77 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+#define PLUS 100
+
+class record
+{
+private:
+
+	uint8_t *arr;
+
+	uint32_t size = 0;
+	uint32_t allocated = 0;
+
+	uint32_t occurs;
+
+public:
+
+	record( void )
+	:	arr( nullptr ),
+		occurs( 0 )
+	{}
+	record( record *r )
+	: occurs( 1 )
+	{
+		size = r->size;
+		allocated = r->allocated;
+
+
+		arr = new uint8_t[ allocated ];
+
+		for( uint32_t i = 0; i < size; i++ )
+			arr[ i ] = r->arr[ i ];
+	}
+
+	record *Write( uint8_t add, uint32_t pos )
+	{
+		record *use;
+		if( occurs > 1 ) {
+			occurs--;
+			
+			record *create = &record( this );
+
+			use = create;
+		}
+		else
+			use = this;
+
+		if( pos == use->size ) {
+			use->size++;
+
+			if( use->allocated == use->size ) {
+				use->allocated += PLUS;
+				uint8_t *temp = new uint8_t[ use->allocated ];
+
+				for( uint32_t i = 0; i < use->size; i++ )
+					temp[ i ] = use->arr[ i ];
+
+				delete[] use->arr;
+				use->arr = temp;
+			}
+		}
+
+		use->arr[ pos ] = add;
+
+		return use;
+	}
+
+	uint8_t Read( uint32_t pos ) { return arr[ pos ]; }
+
+	void AddOccurs( void ) { occurs++; }
+
+};
+
 //
 
 /*
@@ -48,8 +119,12 @@ undoVersion()
 class CFile
 {
 public:
-	CFile( void );
+	CFile( void )
+	:	size(0),
+		pos(0)
+	{}
 	// copy cons, dtor, op=
+
 	bool seek( uint32_t offset )
 	{
 		if( offset > size )
@@ -58,6 +133,7 @@ public:
 
 		return true;
 	}
+	
 	uint32_t read( uint8_t *dst,
 				   uint32_t bytes );
 	uint32_t write( const uint8_t *src,
@@ -71,7 +147,7 @@ private:
 	// todo
 
 	uint32_t pos;
-	uint32_t size = 0;
+	uint32_t size;
 
 
 	//
