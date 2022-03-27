@@ -145,6 +145,7 @@ public:
 	CFile( void )
 	{
 		size = 1;
+		pos = 0;
 		arr = new record*;
 	}
 	// copy cons, dtor, op=
@@ -180,7 +181,7 @@ public:
 
 	void truncate( void )
 	{
-		arr[ size - 1 ]->SetSize( arr[ size - 1 ]->GetPos() );
+		arr[ size - 1 ] = arr[ size - 1 ]->SetSize( arr[ size - 1 ]->GetPos() );
 	}
 
 	uint32_t fileSize( void ) const
@@ -188,7 +189,15 @@ public:
 		return arr[ size - 1 ]->GetSize();
 	}
 
-	void addVersion( void );
+	void addVersion( void )
+	{
+		record **temp = new record*[ size + 1 ];
+		for( uint32_t i = 0; i < size; i++ )
+			temp[ i ] = arr[ i ];
+
+		delete[] arr;
+	}
+
 	bool undoVersion( void );
 
 private:
@@ -196,6 +205,7 @@ private:
 
 	record **arr = nullptr;
 	uint32_t size = 0;
+	uint32_t pos = 0;
 
 	//
 };
