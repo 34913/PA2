@@ -36,6 +36,8 @@ public:
 		allocated = r->allocated;
 		pos = r->pos;
 
+		occurs = 1;
+
 		arr = new uint8_t[ allocated ];
 
 		for( uint32_t i = 0; i < size; i++ )
@@ -78,6 +80,20 @@ public:
 	uint8_t Read( void ) { return arr[ pos++ ]; }
 
 	void AddOccurs( void ) { occurs++; }
+
+	record *SetSize( uint32_t size )
+	{
+		if( occurs > 1 ) {
+			record *r = &record( this );
+
+			occurs--;
+			return r;
+		}
+		else {
+			this->size = size;
+			return this;
+		}
+	}
 
 	uint32_t GetSize() { return size; }
 
@@ -159,10 +175,14 @@ public:
 				    uint32_t bytes )
 	{
 		for( uint32_t i = 0; i < bytes; i++ )
-			arr[ size - 1 ]->Write( src[ i ] );
+			arr[ size - 1 ] = arr[ size - 1 ]->Write( src[ i ] );
 	}
 
-	void truncate( void );
+	void truncate( void )
+	{
+		arr[ size - 1 ]->SetSize( arr[ size - 1 ]->GetPos() );
+	}
+
 	uint32_t fileSize( void ) const;
 	void addVersion( void );
 	bool undoVersion( void );
