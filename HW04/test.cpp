@@ -183,7 +183,11 @@ public:
 		arr[ size - 1 ]->SetSize( arr[ size - 1 ]->GetPos() );
 	}
 
-	uint32_t fileSize( void ) const;
+	uint32_t fileSize( void ) const
+	{
+		return arr[ size - 1 ]->GetSize();
+	}
+
 	void addVersion( void );
 	bool undoVersion( void );
 
