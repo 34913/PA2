@@ -10,12 +10,6 @@ using namespace std;
 #endif /* __PROGTEST__ */
 
 /**
- * @brief for allocating more at once
- * 
- */
-#define PLUS 100
-
-/**
  * @brief for saving the versions
  * 
  */
@@ -58,12 +52,7 @@ public:
 	record( void )
 	{}
 
-	/**
-	 * @brief writes data and makes copy if needed
-	 * 
-	 * @param add data to be written
-	 * @return record* instance pointer, either this or newly created, deep copy
-	 */
+	/*
 	record *Write( uint8_t add )
 	{
 		if( occurs > 1 ) {
@@ -89,6 +78,35 @@ public:
 
 		return this;
 	}
+	*/
+
+	record *Write( uint8_t buffer, uint32_t bytes )
+	{
+		if( occurs > 1 ) {
+			occurs--;
+			
+			return ( (new record( this ))->Write( buffer, bytes ) );
+		}
+
+		if( size + bytes >= allocated ) {
+			allocated += bytes;
+			uint8_t *temp = new uint8_t[ allocated ];
+
+			for( uint32_t i = 0; i < size; i++ )
+				temp[ i ] = arr[ i ];
+
+			delete[] arr;
+			arr = temp;
+		}
+
+		for( uint32_t i = 0; i < bytes; i++ ) {
+			if( pos == size )
+				size++;
+			arr[ pos++ ] = buffer[ i ];
+		}
+
+		return this;
+	}
 
 	/**
 	 * @brief reads the data from array based on position
@@ -97,27 +115,9 @@ public:
 	 */
 	uint8_t Read( void ) { return arr[ pos++ ]; }
 
-	/**
-	 * @brief prefix ++ operator to add occurences
-	 * 
-	 * @return record& this occurs + 1
-	 */
-    record & operator ++ ()
-    {
-		occurs ++;
-        return *this;
-    }
+	void increaseOccurs( void ) { occurs++; }
 
-	/**
-	 * @brief prefix -- operator to add occurences
-	 * 
-	 * @return record& this occurs - 1
-	 */
-	record & operator -- ()
-	{
-		--occurs;
-		return *this;
-	}
+	void decreaseOccurs( void ) { occurs--; }
 
 	/**
 	 * @brief sets the new size of record, used for truncate the array
@@ -206,7 +206,7 @@ public:
 	{
 		size = 1;
 		pos = 0;
-		arr = new record*[1];
+		arr = new record* [ 1 ];
 		arr[0] = new record();
 	}
 
@@ -217,14 +217,14 @@ public:
 	 */
 	CFile( const CFile & copy )
 	{
-		size = copy.size;
+		size = copy.pos + 1;
 		pos = copy.pos;
 
-		arr = new record*[ pos + 1 ];
+		arr = new record* [ size ];
 
-		for( uint32_t i = 0; i <= pos; i++ ) {
+		for( uint32_t i = 0; i < size; i++ ) {
 			arr[ i ] = copy.arr[ i ];
-			++( *arr[ i ] );
+			arr[ i ]->increaseOccurs();
 		}
 	}
 
@@ -235,15 +235,16 @@ public:
 	~CFile( void )
 	{
 		for( uint32_t i = 0; i <= pos; i++ ) {
-			delete arr[ i ];
-			arr[ i ] = nullptr;
+			arr[ i ]->decreaseOccurs();
+			if( arr[ i ]->GetOccurs() == 0)
+				delete arr[ i ];
 		}
 
 		delete[] arr;
 	}
 
 	/*
-	CFile &operator = (const CFile & assign)
+	CFile & operator = (const CFile & assign)
 	{
 		arr = assign.arr;
 		size = assign.size;
@@ -251,7 +252,6 @@ public:
 
 		return *this;
 	}
-
 	*/
 
 	/**
@@ -300,8 +300,9 @@ public:
 	uint32_t write( const uint8_t *src,
 				    uint32_t bytes )
 	{
-		for( uint32_t i = 0; i < bytes; i++ )
-			arr[ pos ] = arr[ pos ]->Write( src[ i ] );
+		// for( uint32_t i = 0; i < bytes; i++ )
+			// arr[ pos ] = arr[ pos ]->Write( src[ i ] );
+		arr[ pos ] = arr[ pos ]->Write( src, bytes );
 
 		return bytes;
 	}
@@ -335,7 +336,7 @@ public:
 		pos ++;
 		if( pos == size ) {
 			size += PLUS / 10;
-			record **temp = new record* [ size ]();
+			record **temp = new record* [ size ];
 			
 			for( uint32_t i = 0; i < pos; i++ )
 				temp[ i ] = arr[ i ];
@@ -344,7 +345,7 @@ public:
 		}
 
 		arr[ pos ] = arr[ pos - 1 ];
-		++( *arr[ pos ] );
+		arr[ pos ]->increaseOccurs();
 	}
 
 	/**
@@ -359,7 +360,8 @@ public:
 		if( pos == 0 )
 			return false;
 
-		if( ( --( *arr[ pos ] ) ).GetOccurs() == 0 )
+		arr[ pos ]->decreaseOccurs();
+		if( arr[ pos ]->GetOccurs() == 0 )
 			delete arr[ pos ];
 		pos --;
 
@@ -370,7 +372,11 @@ public:
 private:
 
 	record **arr = nullptr;
+	
+	// allocated size
 	uint32_t size = 0;
+
+	// position in versions
 	uint32_t pos = 0;
 
 };
