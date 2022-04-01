@@ -23,6 +23,12 @@ private:
 
 	uint32_t occurs = 1;
 
+	/**
+	 * @brief Construct a new record object and copy all data
+	 * used interanally to make copy on edit (saving memory)
+	 * 
+	 * @param r record to be based on
+	 */
 	record( record *r )
 	{
 		size = r->size;
@@ -37,41 +43,50 @@ private:
 
 public:
 
+	/**
+	 * @brief Construct a new empty record object
+	 * 
+	 */
 	record( void )
 	{}
 
+	/**
+	 * @brief writes data and makes copy if needed
+	 * 
+	 * @param add data to be writen
+	 * @return record* instance pointer, either this or newly created, deep copy 
+	 */
 	record *Write( uint8_t add )
 	{
-		record *use;
 		if( occurs > 1 ) {
 			occurs--;
 			
-			record *create = new record( this );
-
-			use = create;
+			return ( (new record( this ))->Write( add ) );
 		}
-		else
-			use = this;
 
-		if( pos == use->size ) {
-			if( use->allocated == use->size ) {
-				use->allocated += PLUS;
-				uint8_t *temp = new uint8_t[ use->allocated ];
+		if( pos == size ) {
+			if( allocated == size ) {
+				allocated += PLUS;
+				uint8_t *temp = new uint8_t[ allocated ];
 
-				for( uint32_t i = 0; i < use->size; i++ )
-					temp[ i ] = use->arr[ i ];
+				for( uint32_t i = 0; i < size; i++ )
+					temp[ i ] = arr[ i ];
 
-				delete[] use->arr;
-				use->arr = temp;
+				delete[] arr;
+				arr = temp;
 			}
-			use->size++;
+			size++;
 		}
-		cout << (int)add << " " << use->pos << endl;
-		use->arr[ use->pos++ ] = add;
+		arr[ pos++ ] = add;
 
-		return use;
+		return this;
 	}
 
+	/**
+	 * @brief reads the data from
+	 * 
+	 * @return uint8_t 
+	 */
 	uint8_t Read( void ) { return arr[ pos++ ]; }
 
     // prefix
