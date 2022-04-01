@@ -15,28 +15,19 @@ class record
 {
 private:
 
-	uint8_t *arr;
+	uint8_t *arr = nullptr;
 
 	uint32_t size = 0;
 	uint32_t allocated = 0;
 	uint32_t pos = 0;
 
-	uint32_t occurs;
+	uint32_t occurs = 1;
 
-public:
-
-	record( void )
-	:	arr( nullptr ),
-		occurs( 0 )
-	{}
 	record( record *r )
-	: occurs( 1 )
 	{
 		size = r->size;
 		allocated = r->allocated;
 		pos = r->pos;
-
-		occurs = 1;
 
 		arr = new uint8_t[ allocated ];
 
@@ -44,13 +35,18 @@ public:
 			arr[ i ] = r->arr[ i ];
 	}
 
+public:
+
+	record( void )
+	{}
+
 	record *Write( uint8_t add )
 	{
 		record *use;
 		if( occurs > 1 ) {
 			occurs--;
 			
-			record *create = &record( this );
+			record *create = new record( this );
 
 			use = create;
 		}
@@ -58,8 +54,6 @@ public:
 			use = this;
 
 		if( pos == use->size ) {
-			use->size++;
-
 			if( use->allocated == use->size ) {
 				use->allocated += PLUS;
 				uint8_t *temp = new uint8_t[ use->allocated ];
@@ -70,21 +64,34 @@ public:
 				delete[] use->arr;
 				use->arr = temp;
 			}
+			use->size++;
 		}
-
-		use->arr[ pos++ ] = add;
+		cout << (int)add << " " << use->pos << endl;
+		use->arr[ use->pos++ ] = add;
 
 		return use;
 	}
 
 	uint8_t Read( void ) { return arr[ pos++ ]; }
 
-	void AddOccurs( void ) { occurs++; }
+    // prefix
+    record & operator ++ ()
+    {
+		occurs ++;
+        return *this;
+    }
+
+	record & operator -- ()
+	{
+		--occurs;
+		return *this;
+	}
 
 	record *SetSize( uint32_t size )
 	{
 		if( occurs > 1 ) {
-			record *r = &record( this );
+			record *r = new record( this );
+			r->size = size;
 
 			occurs--;
 			return r;
@@ -95,66 +102,93 @@ public:
 		}
 	}
 
-	uint32_t GetSize() { return size; }
+	uint32_t GetSize( void ) { return size; }
 
-	void SetPos( uint32_t pos ) { this->pos = pos; }
+	record *SetPos( uint32_t pos )
+	{
+		if( occurs > 1 ) {
+			record *r = new record( this );
+			r->pos = pos;
+
+			occurs--;
+			return r;
+		}
+		else {
+			this->pos = pos;
+			return this;
+		}			
+	}
 
 	uint32_t GetPos( void ) { return pos; }
+
+	uint32_t GetOccurs( void ) { return occurs; }
+
+	void Print( void )
+	{
+		cout << endl;
+		for( uint32_t i = 0; i < size; i++ )
+			cout << (int)arr[ i ] << " ";
+		cout << endl << pos << endl << occurs << endl << endl;
+	}
+
+	~record()
+	{
+		delete [] arr;
+	}
 
 };
 
 //
 
-/*
-konstruktor
-    implicitní konstruktor vytvoří prázdnou instanci souboru (velikost 0 B, pozice v 
-	souboru 0).
-destruktor, op= a kopírující konstruktor
-    implementujte, pokud automaticky generovaná varianta nevyhovuje,
-write (data, len)
-    Metoda zapíše daný blok dat (data) o délce len na aktuální pozici. Aktuální 
-	pozice v souboru se po zápisu posune za poslední zapsaný bajt. Metoda write 
-	přepisuje data (je-li aktuální pozice uvnitř souboru)/rozšiřuje velikost souboru. 
-	Návratovou hodnotou je počet zapsaných bajtů.
-read (data, len)
-    Metoda načte požadovaný počet bajtů (len) do pole data. Návratovou hodnotou 
-	je počet načtených bajtů (může být menší než len podle aktuální pozice v souboru). 
-	Metoda dále posune aktuální pozici v souboru vpřed o přečtený počet bajtů.
-seek ( pos )
-    metoda přesune aktuální pozici v souboru na pozici pos. Pozice se použije pro 
-	následné operace čtení/zápisu. Parametr pos musí být v rozsahu 0 až délka souboru 
-	(obě meze včetně). Návratovou hodnotou je true pro úspěch, false pro neúspěch 
-	(pozice mimo meze).
-truncate()
-    metoda zkrátí soubor na velikost danou aktuální pozicí v souboru.
-fileSize()
-    metoda vrátí aktuální velikost souboru v bajtech.
-addVersion()
-    metoda archivuje aktuální obsah souboru a aktuální pozici v souboru 
-	(vytvoří verzi). Tato verze bude uložena v instanci CFile.
-undoVersion()
-    metoda vrátí obsah souboru a aktuální pozici v souboru do stavu, ve kterém 
-	byly při odpovídajícím předchozím volání addVersion. Vracet se k předchozím 
-	verzím lze vícenásobně, dokud existují předchozí archivované verze. Volání 
-	undoVersion vrátí true pro úspěch, false pro neúspěch (neexistuje předchozí verze).
-*/
-
 class CFile
 {
 public:
+
 	CFile( void )
 	{
 		size = 1;
 		pos = 0;
-		arr = new record*;
+		arr = new record*[1];
+		arr[0] = new record();
 	}
-	// copy cons, dtor, op=
+
+	CFile( const CFile & copy )
+	{
+		size = copy.size;
+		pos = copy.pos;
+
+		arr = new record*[ pos + 1 ];
+
+		for( uint32_t i = 0; i <= pos; i++ ) {
+			arr[ i ] = copy.arr[ i ];
+			++( *arr[ i ] );
+		}
+	}
+
+	~CFile( void )
+	{
+		for( uint32_t i = 0; i <= pos; i++ ) {
+			delete arr[ i ];
+			arr[ i ] = nullptr;
+		}
+
+		delete[] arr;
+	}
+
+	CFile &operator = (const CFile & assign)
+	{
+		arr = assign.arr;
+		size = assign.size;
+		pos = assign.pos;
+
+		return *this;
+	}
 
 	bool seek( uint32_t offset )
 	{
-		if( offset > arr[ size - 1 ]->GetSize() )
+		if( offset > arr[ pos ]->GetSize() )
 			return false;
-		arr[ size - 1 ]->SetPos( offset );
+		arr[ pos ] = arr[ pos ]->SetPos( offset );
 
 		return true;
 	}
@@ -163,7 +197,7 @@ public:
 				   uint32_t bytes )
 	{
 		for( uint32_t i = 0; i < bytes; i++ ) {
-			record* here = arr[ size - 1 ];
+			record* here = arr[ pos ];
 			if( here->GetPos() == here->GetSize() )
 				return i;
 			
@@ -176,38 +210,61 @@ public:
 				    uint32_t bytes )
 	{
 		for( uint32_t i = 0; i < bytes; i++ )
-			arr[ size - 1 ] = arr[ size - 1 ]->Write( src[ i ] );
+			arr[ pos ] = arr[ pos ]->Write( src[ i ] );
+
+		return bytes;
 	}
 
 	void truncate( void )
 	{
-		arr[ size - 1 ] = arr[ size - 1 ]->SetSize( arr[ size - 1 ]->GetPos() );
+		arr[ pos ] = arr[ pos ]->SetSize( arr[ pos ]->GetPos() );
 	}
 
 	uint32_t fileSize( void ) const
 	{
-		return arr[ size - 1 ]->GetSize();
+		return arr[ pos ]->GetSize();
 	}
 
 	void addVersion( void )
 	{
-		record **temp = new record*[ size + 1 ];
-		for( uint32_t i = 0; i < size; i++ )
-			temp[ i ] = arr[ i ];
+		pos ++;
+		if( pos == size ) {
+			size += PLUS / 10;
+			record **temp = new record* [ size ]();
+			
+			for( uint32_t i = 0; i < pos; i++ )
+				temp[ i ] = arr[ i ];
+			delete [] arr;
+			arr = temp;
+		}
 
-		delete[] arr;
+		arr[ pos ] = arr[ pos - 1 ];
+		++( *arr[ pos ] );
 	}
 
-	bool undoVersion( void );
+	bool undoVersion( void )
+	{
+		if( pos == 0 )
+			return false;
+
+		if( ( --( *arr[ pos ] ) ).GetOccurs() == 0 )
+			delete arr[ pos ];
+		pos --;
+
+		return true;
+	}
+
+	void Print( void )
+	{
+		arr[ pos ]->Print();
+	}
 
 private:
-	// todo
 
 	record **arr = nullptr;
 	uint32_t size = 0;
 	uint32_t pos = 0;
 
-	//
 };
 
 //
@@ -238,7 +295,6 @@ bool readTest( CFile &x,
 int main( void )
 {
 	CFile f0;
-
 	assert(writeTest(f0, {10, 20, 30}, 3));
 	assert(f0.fileSize() == 3);
 	assert(writeTest(f0, {60, 70, 80}, 3));
