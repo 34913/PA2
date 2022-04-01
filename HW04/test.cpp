@@ -17,13 +17,13 @@ class record
 {
 private:
 
-	uint8_t *arr = nullptr;
-
 	uint32_t size = 0;
 	uint32_t allocated = 0;
 	uint32_t pos = 0;
 
 	uint32_t occurs = 1;
+
+	uint8_t *arr = nullptr;
 
 	/**
 	 * @brief Construct a new record object and copy all data
@@ -36,6 +36,8 @@ private:
 		size = r->size;
 		allocated = r->allocated;
 		pos = r->pos;
+
+		occurs = 1;
 
 		arr = new uint8_t[ allocated ];
 
@@ -52,35 +54,14 @@ public:
 	record( void )
 	{}
 
-	/*
-	record *Write( uint8_t add )
-	{
-		if( occurs > 1 ) {
-			occurs--;
-			
-			return ( (new record( this ))->Write( add ) );
-		}
-
-		if( pos == size ) {
-			if( allocated == size ) {
-				allocated += PLUS;
-				uint8_t *temp = new uint8_t[ allocated ];
-
-				for( uint32_t i = 0; i < size; i++ )
-					temp[ i ] = arr[ i ];
-
-				delete[] arr;
-				arr = temp;
-			}
-			size++;
-		}
-		arr[ pos++ ] = add;
-
-		return this;
-	}
-	*/
-
-	record *Write( uint8_t buffer, uint32_t bytes )
+	/**
+	 * @brief 
+	 * 
+	 * @param buffer 
+	 * @param bytes 
+	 * @return record* 
+	 */
+	record *Write( const uint8_t *buffer, uint32_t bytes )
 	{
 		if( occurs > 1 ) {
 			occurs--;
@@ -89,7 +70,7 @@ public:
 		}
 
 		if( size + bytes >= allocated ) {
-			allocated += bytes;
+			allocated += bytes + 10;
 			uint8_t *temp = new uint8_t[ allocated ];
 
 			for( uint32_t i = 0; i < size; i++ )
@@ -115,8 +96,16 @@ public:
 	 */
 	uint8_t Read( void ) { return arr[ pos++ ]; }
 
+	/**
+	 * @brief increseas occurs
+	 * 
+	 */
 	void increaseOccurs( void ) { occurs++; }
 
+	/**
+	 * @brief decreseas occurs
+	 * 
+	 */
 	void decreaseOccurs( void ) { occurs--; }
 
 	/**
@@ -130,20 +119,12 @@ public:
 	{
 		if( occurs > 1 ) {
 			occurs--;
-
 			return ( ( new record( this ) )->SetSize( size ) );
 		}
 
 		this->size = size;
 		return this;
 	}
-
-	/**
-	 * @brief gets the size of record
-	 * 
-	 * @return uint32_t size
-	 */
-	uint32_t GetSize( void ) { return size; }
 
 	/**
 	 * @brief sets the position in record, used for seek
@@ -155,17 +136,20 @@ public:
 	record *SetPos( uint32_t pos )
 	{
 		if( occurs > 1 ) {
-			record *r = new record( this );
-			r->pos = pos;
-
 			occurs--;
-			return r;
+			return ( ( new record( this ) )->SetPos( pos ) );
 		}
-		else {
-			this->pos = pos;
-			return this;
-		}			
+
+		this->pos = pos;
+		return this;
 	}
+
+	/**
+	 * @brief gets the size of record
+	 * 
+	 * @return uint32_t size
+	 */
+	uint32_t GetSize( void ) { return size; }
 
 	/**
 	 * @brief gets the position of record
@@ -190,6 +174,14 @@ public:
 		delete [] arr;
 	}
 
+	void Print()
+	{
+		cout << endl;
+		for( uint32_t i = 0; i < size; i++ )
+			cout << (int)arr[ i ] << " ";
+		cout << endl << pos << " " << occurs << endl << endl;
+	}
+
 };
 
 //
@@ -207,7 +199,7 @@ public:
 		size = 1;
 		pos = 0;
 		arr = new record* [ 1 ];
-		arr[0] = new record();
+		arr[0] = new record;
 	}
 
 	/**
@@ -229,6 +221,33 @@ public:
 	}
 
 	/**
+	 * @brief asssign copy
+	 * 
+	 * @param copy to be copied from
+	 * @return CFile& the instance
+	 */
+	CFile & operator = ( const CFile & copy )
+	{
+		if( this == &copy )
+			return *this;
+
+		delete arr[ 0 ];
+		delete [] arr;
+		
+		size = copy.pos + 1;
+		pos = copy.pos;
+
+		arr = new record* [ size ];
+
+		for( uint32_t i = 0; i < size; i++ ) {
+			arr[ i ] = copy.arr[ i ];
+			arr[ i ]->increaseOccurs();
+		}
+
+		return *this;
+	}
+
+	/**
 	 * @brief Destroy the CFile object and release any of allocated resources
 	 * 
 	 */
@@ -242,17 +261,6 @@ public:
 
 		delete[] arr;
 	}
-
-	/*
-	CFile & operator = (const CFile & assign)
-	{
-		arr = assign.arr;
-		size = assign.size;
-		pos = assign.pos;
-
-		return *this;
-	}
-	*/
 
 	/**
 	 * @brief set position in record
@@ -300,8 +308,6 @@ public:
 	uint32_t write( const uint8_t *src,
 				    uint32_t bytes )
 	{
-		// for( uint32_t i = 0; i < bytes; i++ )
-			// arr[ pos ] = arr[ pos ]->Write( src[ i ] );
 		arr[ pos ] = arr[ pos ]->Write( src, bytes );
 
 		return bytes;
@@ -335,7 +341,7 @@ public:
 	{
 		pos ++;
 		if( pos == size ) {
-			size += PLUS / 10;
+			size += 10;
 			record **temp = new record* [ size ];
 			
 			for( uint32_t i = 0; i < pos; i++ )
@@ -368,6 +374,10 @@ public:
 		return true;
 	}
 
+	void Print()
+	{
+		arr[ pos ]->Print();
+	}
 
 private:
 
@@ -424,7 +434,9 @@ int main( void )
 	assert(writeTest(f0, {100, 101, 102, 103}, 4));
 	f0.addVersion();
 	assert(f0.seek(5));
-	CFile f1(f0);
+	// CFile f1(f0);
+	CFile f1;
+	f1 = f0;
 	f0.truncate();
 	assert(f0.seek(0));
 	assert(readTest(f0, {10, 20, 5, 4, 70}, 20));
@@ -442,6 +454,27 @@ int main( void )
 	assert(f1.undoVersion());
 	assert(readTest(f1, {4, 70, 80}, 20));
 	assert(!f1.undoVersion());
+
+	CFile f2;
+	f2.addVersion();
+	assert(f2.undoVersion());
+	assert(!f2.undoVersion());
+
+	assert(writeTest(f2,{1,2,3,4},4));
+	assert(f2.seek(2));
+	f2.truncate();
+	assert(!f2.seek(3));
+	assert(writeTest(f2,{3},1));
+	assert(f2.seek(0));
+	assert(readTest(f2,{1,2,3},3));
+	assert(!f2.undoVersion());
+	assert(f2.seek(0));
+	f2.truncate();
+	assert(!f2.seek(1));
+	assert(writeTest(f2,{0,1},2));
+	assert(f2.seek(1));
+	assert(readTest(f2,{1},1));
+
 	return EXIT_SUCCESS;
 }
 #endif /* __PROGTEST__ */
