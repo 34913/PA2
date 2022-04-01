@@ -9,8 +9,16 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+/**
+ * @brief for allocating more at once
+ * 
+ */
 #define PLUS 100
 
+/**
+ * @brief for saving the versions
+ * 
+ */
 class record
 {
 private:
@@ -53,8 +61,8 @@ public:
 	/**
 	 * @brief writes data and makes copy if needed
 	 * 
-	 * @param add data to be writen
-	 * @return record* instance pointer, either this or newly created, deep copy 
+	 * @param add data to be written
+	 * @return record* instance pointer, either this or newly created, deep copy
 	 */
 	record *Write( uint8_t add )
 	{
@@ -83,42 +91,67 @@ public:
 	}
 
 	/**
-	 * @brief reads the data from
+	 * @brief reads the data from array based on position
 	 * 
-	 * @return uint8_t 
+	 * @return uint8_t data read
 	 */
 	uint8_t Read( void ) { return arr[ pos++ ]; }
 
-    // prefix
+	/**
+	 * @brief prefix ++ operator to add occurences
+	 * 
+	 * @return record& this occurs + 1
+	 */
     record & operator ++ ()
     {
 		occurs ++;
         return *this;
     }
 
+	/**
+	 * @brief prefix -- operator to add occurences
+	 * 
+	 * @return record& this occurs - 1
+	 */
 	record & operator -- ()
 	{
 		--occurs;
 		return *this;
 	}
 
+	/**
+	 * @brief sets the new size of record, used for truncate the array
+	 * creates deep copy if needed (its used somewhere else too)
+	 * 
+	 * @param size new size
+	 * @return record* instance pointer, either this or newly created, deep copy
+	 */
 	record *SetSize( uint32_t size )
 	{
 		if( occurs > 1 ) {
-			record *r = new record( this );
-			r->size = size;
-
 			occurs--;
-			return r;
+
+			return ( ( new record( this ) )->SetSize( size ) );
 		}
-		else {
-			this->size = size;
-			return this;
-		}
+
+		this->size = size;
+		return this;
 	}
 
+	/**
+	 * @brief gets the size of record
+	 * 
+	 * @return uint32_t size
+	 */
 	uint32_t GetSize( void ) { return size; }
 
+	/**
+	 * @brief sets the position in record, used for seek
+	 * creates deep copy if needed (its used somewhere else too)
+	 * 
+	 * @param pos new position
+	 * @return record* instance pointer, either this or newly created, deep copy
+	 */
 	record *SetPos( uint32_t pos )
 	{
 		if( occurs > 1 ) {
@@ -134,18 +167,24 @@ public:
 		}			
 	}
 
+	/**
+	 * @brief gets the position of record
+	 * 
+	 * @return uint32_t position
+	 */
 	uint32_t GetPos( void ) { return pos; }
 
+	/**
+	 * @brief gets the occurences of record
+	 * 
+	 * @return uint32_t occurs
+	 */
 	uint32_t GetOccurs( void ) { return occurs; }
 
-	void Print( void )
-	{
-		cout << endl;
-		for( uint32_t i = 0; i < size; i++ )
-			cout << (int)arr[ i ] << " ";
-		cout << endl << pos << endl << occurs << endl << endl;
-	}
-
+	/**
+	 * @brief Destroy the record object and release used memory if not nullptr
+	 * 
+	 */
 	~record()
 	{
 		delete [] arr;
@@ -159,6 +198,10 @@ class CFile
 {
 public:
 
+	/**
+	 * @brief Construct a new empty CFile object with one size
+	 * 
+	 */
 	CFile( void )
 	{
 		size = 1;
@@ -167,6 +210,11 @@ public:
 		arr[0] = new record();
 	}
 
+	/**
+	 * @brief Construct a new copy of CFile object base on given CFile 
+	 * 
+	 * @param copy make copy of this
+	 */
 	CFile( const CFile & copy )
 	{
 		size = copy.size;
@@ -180,6 +228,10 @@ public:
 		}
 	}
 
+	/**
+	 * @brief Destroy the CFile object and release any of allocated resources
+	 * 
+	 */
 	~CFile( void )
 	{
 		for( uint32_t i = 0; i <= pos; i++ ) {
@@ -190,6 +242,7 @@ public:
 		delete[] arr;
 	}
 
+	/*
 	CFile &operator = (const CFile & assign)
 	{
 		arr = assign.arr;
@@ -199,6 +252,15 @@ public:
 		return *this;
 	}
 
+	*/
+
+	/**
+	 * @brief set position in record
+	 * 
+	 * @param offset position
+	 * @return true on success
+	 * @return false on failure
+	 */
 	bool seek( uint32_t offset )
 	{
 		if( offset > arr[ pos ]->GetSize() )
@@ -208,6 +270,13 @@ public:
 		return true;
 	}
 	
+	/**
+	 * @brief read postion of data from last version from position set by seek()
+	 * 
+	 * @param dst buffer to save data to
+	 * @param bytes number of bytes to be read
+	 * @return uint32_t number of bytes actually read
+	 */
 	uint32_t read( uint8_t *dst,
 				   uint32_t bytes )
 	{
@@ -221,6 +290,13 @@ public:
 		return bytes;
 	}
 	
+	/**
+	 * @brief write specified number of bytes in last version
+	 * 
+	 * @param src buffer of data to be written
+	 * @param bytes number of bytes
+	 * @return uint32_t number of bytes actually written
+	 */
 	uint32_t write( const uint8_t *src,
 				    uint32_t bytes )
 	{
@@ -230,16 +306,30 @@ public:
 		return bytes;
 	}
 
+	/**
+	 * @brief truncate the size based on position
+	 * 
+	 */
 	void truncate( void )
 	{
 		arr[ pos ] = arr[ pos ]->SetSize( arr[ pos ]->GetPos() );
 	}
 
+	/**
+	 * @brief gets the size of last version
+	 * 
+	 * @return uint32_t size
+	 */
 	uint32_t fileSize( void ) const
 	{
 		return arr[ pos ]->GetSize();
 	}
 
+	/**
+	 * @brief adds version of record in array
+	 * makes copy, save it and add occurs
+	 * 
+	 */
 	void addVersion( void )
 	{
 		pos ++;
@@ -257,6 +347,13 @@ public:
 		++( *arr[ pos ] );
 	}
 
+	/**
+	 * @brief tracks back one version and deletes the last if needed
+	 * (if its reference is not anywhere else)
+	 * 
+	 * @return true on success
+	 * @return false on failure
+	 */
 	bool undoVersion( void )
 	{
 		if( pos == 0 )
@@ -269,10 +366,6 @@ public:
 		return true;
 	}
 
-	void Print( void )
-	{
-		arr[ pos ]->Print();
-	}
 
 private:
 
