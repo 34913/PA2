@@ -17,13 +17,13 @@ class record
 {
 private:
 
-	uint32_t size = 0;
-	uint32_t allocated = 0;
-	uint32_t pos = 0;
+	uint32_t size;
+	uint32_t allocated;
+	uint32_t pos;
 
-	uint32_t occurs = 1;
+	uint32_t occurs;
 
-	uint8_t *arr = nullptr;
+	uint8_t *arr;
 
 	/**
 	 * @brief Construct a new record object and copy all data
@@ -32,11 +32,11 @@ private:
 	 * @param r record to be based on
 	 */
 	record( record *r )
+	:	arr(nullptr)
 	{
 		size = r->size;
-		allocated = r->allocated;
+		allocated = r->size;
 		pos = r->pos;
-
 		occurs = 1;
 
 		arr = new uint8_t[ allocated ];
@@ -52,7 +52,14 @@ public:
 	 * 
 	 */
 	record( void )
-	{}
+	:	arr(nullptr)
+	{
+		arr = nullptr;
+		size = 0;
+		allocated = 0;
+		pos = 0;
+		occurs = 1;
+	}
 
 	/**
 	 * @brief 
@@ -231,8 +238,13 @@ public:
 		if( this == &copy )
 			return *this;
 
-		delete arr[ 0 ];
-		delete [] arr;
+		for( uint32_t i = 0; i <= pos; i++ ) {
+			arr[ i ]->decreaseOccurs();
+			if( arr[ i ]->GetOccurs() == 0)
+				delete arr[ i ];
+		}
+
+		delete[] arr;
 		
 		size = copy.pos + 1;
 		pos = copy.pos;
@@ -474,6 +486,19 @@ int main( void )
 	assert(writeTest(f2,{0,1},2));
 	assert(f2.seek(1));
 	assert(readTest(f2,{1},1));
+	assert(writeTest(f2,{2,3,4,5,6,7,8,9,10,11,12,13,14,15},14));
+
+	for(int i = 0; i < 15; i++)
+		f2.addVersion();
+	assert(f2.seek(0));
+	assert(readTest(f2,{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},16));
+	assert(f2.fileSize() == 16);
+	f2.truncate();
+	assert(f2.seek(16));
+	for(int i = 0; i < 15; i++)
+		assert(f2.undoVersion());
+
+	assert(!f2.undoVersion());
 
 	return EXIT_SUCCESS;
 }
