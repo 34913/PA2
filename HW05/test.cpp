@@ -36,30 +36,32 @@ public:
 		this->day = day;
 	}
 
-	bool less( const CDate & compare )
+	bool operator < ( const CDate & x )
 	{
-		if( year < compare.year )
+		if( year < x.year )
 			return true;
-		else if( year != compare.year )
+		else if( year != x.year )
 			return false;
 		
-		if( month < compare.month )
+		if( month < x.month )
 			return true;
-		else if( month != compare.month )
+		else if( month != x.month )
 			return false;
 		
-		if( day < compare.day )
+		if( day < x.day )
 			return true;
 		return false;
 	}
 
 };
 
-
 class CSupermarket
 {
 public:
 	// default constructor
+	
+	
+	
 	// store   ( name, expiryDate, count )
 	// sell    ( shoppingList )
 	// expired ( date ) const
@@ -67,7 +69,8 @@ public:
 private:
 	// todo
 
-	// unordered_map<string, map<CDate>> data;
+	unordered_map<string, map<CDate, int>> data;
+
 
 	// Unordered_map nazev zbozi jako key a value bude map serazeny podle data trvanlivosti.
 };
