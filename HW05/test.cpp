@@ -36,7 +36,7 @@ public:
 		this->day = day;
 	}
 
-	bool operator < ( const CDate & x )
+	bool operator < ( const CDate & x ) const
 	{
 		if( year < x.year )
 			return true;
@@ -52,17 +52,25 @@ public:
 			return true;
 		return false;
 	}
-
 };
+
+bool cmp( const CDate & a, const CDate & b )
+{
+	return a < b;
+}
 
 class CSupermarket
 {
 public:
 	// default constructor
 	
+	CSupermarket & store ( string name, CDate expiryDate, int count )
+	{
+		data[ name ][ expiryDate ] += count;
+
+		return *this;
+	}
 	
-	
-	// store   ( name, expiryDate, count )
 	// sell    ( shoppingList )
 	// expired ( date ) const
 
@@ -70,7 +78,6 @@ private:
 	// todo
 
 	unordered_map<string, map<CDate, int>> data;
-
 
 	// Unordered_map nazev zbozi jako key a value bude map serazeny podle data trvanlivosti.
 };
@@ -80,20 +87,17 @@ int main(void)
 {
 	CSupermarket s;
 
-	/*
 	s.store("bread", CDate(2016, 4, 30), 100)
 		.store("butter", CDate(2016, 5, 10), 10)
 		.store("beer", CDate(2016, 8, 10), 50)
 		.store("bread", CDate(2016, 4, 25), 100)
 		.store("okey", CDate(2016, 7, 18), 5);
 
-	*/
-
-	/*
-
 	list<pair<string, int>> l0 = s.expired(CDate(2018, 4, 30));
 	assert(l0.size() == 4);
 	assert((l0 == list<pair<string, int>>{{"bread", 200}, {"beer", 50}, {"butter", 10}, {"okey", 5}}));
+
+	/*
 
 	list<pair<string, int>> l1{{"bread", 2}, {"Coke", 5}, {"butter", 20}};
 	s.sell(l1);
