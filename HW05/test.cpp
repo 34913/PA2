@@ -62,16 +62,66 @@ bool cmp( const CDate & a, const CDate & b )
 class CSupermarket
 {
 public:
-	// default constructor
 	
-	CSupermarket & store ( string name, CDate expiryDate, int count )
+	CSupermarket & store( string name, CDate expiryDate, int count )
 	{
 		data[ name ][ expiryDate ] += count;
 
 		return *this;
 	}
 	
-	// sell    ( shoppingList )
+	/*
+	list<pair<string, int>> & expired( CDate expDate )
+	{
+
+	}
+	*/
+	
+	void sell( list<pair<string, int>> & array )
+	{
+		auto it = array.begin();
+		list<pair<string, int>>::iterator last;
+		
+		while( it != array.end() ) {
+			auto i = data.find( it->first );
+			if( i == data.end() ) {
+				it++;
+				continue;
+			}
+
+			while( true ) {
+				if( it->second > i->second.begin()->second ) {
+					it->second -= i->second.begin()->second;
+					i->second.erase( i->second.begin() );
+				}
+				else {
+					if( it->second == i->second.begin()->second )
+						i->second.erase( i->second.begin() );
+					else
+						i->second.begin()->second -= it->second;
+					
+					last = it++;
+					array.erase( last );
+
+					break;
+				}
+
+				if( i->second.size() == 0 ) {
+					it ++;
+					break;
+				}
+			}
+
+			if( i->second.size() == 0 )
+				data.erase( i->first );
+		}
+
+		// cout << array.size() << endl;
+		// for( auto x : array ) {
+		// 	cout << x.first << " " << x.second << endl;
+		// }
+	}
+
 	// expired ( date ) const
 
 private:
@@ -93,16 +143,20 @@ int main(void)
 		.store("bread", CDate(2016, 4, 25), 100)
 		.store("okey", CDate(2016, 7, 18), 5);
 
+	/*
+
 	list<pair<string, int>> l0 = s.expired(CDate(2018, 4, 30));
 	assert(l0.size() == 4);
 	assert((l0 == list<pair<string, int>>{{"bread", 200}, {"beer", 50}, {"butter", 10}, {"okey", 5}}));
 
-	/*
+	*/
 
 	list<pair<string, int>> l1{{"bread", 2}, {"Coke", 5}, {"butter", 20}};
 	s.sell(l1);
 	assert(l1.size() == 2);
 	assert((l1 == list<pair<string, int>>{{"Coke", 5}, {"butter", 10}}));
+
+	/*
 
 	list<pair<string, int>> l2 = s.expired(CDate(2016, 4, 30));
 	assert(l2.size() == 1);
