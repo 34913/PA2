@@ -54,19 +54,14 @@ public:
 	}
 };
 
-bool cmp( const CDate & a, const CDate & b )
+bool cmp( const pair<string, int> & a, const pair<string, int> & b )
 {
-	return a < b;
+	return a.second < b.second;
 }
 
 class CSupermarket
 {
 public:
-	
-	CSupermarket()
-	{
-		records = new list<pair<string, int>>();
-	}
 
 	CSupermarket & store( string name, CDate expiryDate, int count )
 	{
@@ -75,31 +70,49 @@ public:
 		return *this;
 	}
 	
-	list<pair<string, int>> & expired( CDate expDate )
-	{		
-		records->clear();
+	list<pair<string, int>> expired( CDate expDate )
+	{
+		set<pair<string, int>, bool(*)(const pair<string, int> &, const pair<string, int> &)> array( cmp );
 		auto dataIt = data.begin();
 
 		while( dataIt != data.end() ) {
 
 			auto it = dataIt->second.begin();
+			pair<string, int> item;
 
 			if( it->first < expDate )
-				records->push_back( { dataIt->first, it->second } );
+				item = { dataIt->first, it->second };
+			else {
+				dataIt++;
+				continue;
+			}
 			it++;
 
 			while( it != dataIt->second.end() ) {
 				if( it->first < expDate )
-					records->back().second += it->second;
+					item.second += it->second;
 				else
 					break;
 
 				it++;
 			}
+			array.insert( item );
 
 			dataIt++;
 		}
-		return *records;
+
+		list<pair<string, int>> records;
+		auto arrIt = array.begin();
+		while( arrIt != array.end() ) {
+			records.push_back( (*arrIt) );
+			arrIt++;
+		}
+
+		cout << records.size() << endl;
+		for( auto x : records )
+			cout << x.first << " " << x.second << endl;
+
+		return records;
 	}
 	
 	void sell( list<pair<string, int>> & array )
@@ -124,11 +137,6 @@ public:
 			if( mapIt->second.size() == 0 )
 				data.erase( mapIt->first );
 		}
-	}
-
-	~CSupermarket()
-	{
-		delete records;
 	}
 
 private:
@@ -193,8 +201,6 @@ private:
 
 	unordered_map<string, map<CDate, int>> data;
 
-	list<pair<string, int>> *records;
-
 };
 
 #ifndef __PROGTEST__
@@ -235,23 +241,14 @@ int main(void)
 	assert((l5 == list<pair<string, int>>{{"okey", 5}, {"beer", 50}, {"bread", 93}}));
 
 	s.store("Coke", CDate(2016, 12, 31), 10);
-
-	cout << l5.size() << endl;
-	for( auto x : l5 )
-		cout << x.first << " " << x.second << endl;
-
 	list<pair<string, int>> l6{{"Cake", 1}, {"Coke", 1}, {"cake", 1}, {"coke", 1}, {"cuke", 1}, {"Cokes", 1}};
 	s.sell(l6);
 	assert(l6.size() == 3);
 	assert((l6 == list<pair<string, int>>{{"cake", 1}, {"cuke", 1}, {"Cokes", 1}}));
 
-	cout << l6.size() << endl;
-	for( auto x : l6 )
-		cout << x.first << " " << x.second << endl;
-
 	list<pair<string, int>> l7 = s.expired(CDate(2017, 1, 1));
 	assert(l7.size() == 4);
-	assert((l7 == list<pair<string, int>>{{"bread", 93}, {"beer", 50}, {"Coke", 7}, {"okey", 5}}));
+	assert((l7 == list<pair<string, int>>{{"Coke", 7}, {"okey", 5}, {"beer", 50}, {"bread", 93} }));
 
 	cout << l7.size() << endl;
 	for( auto x : l7 )
