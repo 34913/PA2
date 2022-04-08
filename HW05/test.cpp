@@ -79,57 +79,91 @@ public:
 	
 	void sell( list<pair<string, int>> & array )
 	{
-		auto it = array.begin();
 		list<pair<string, int>>::iterator last;
+		auto it = array.begin();
 		
 		while( it != array.end() ) {
-			auto i = data.find( it->first );
-			if( i == data.end() ) {
+			auto mapIt = data.find( it->first );
+
+			if( mapIt == data.end() ) {
 				it++;
-				continue;
+
+				if( SadButTrue( it->first, mapIt ) )
+					continue;
 			}
 
-			while( true ) {
-				if( it->second > i->second.begin()->second ) {
-					it->second -= i->second.begin()->second;
-					i->second.erase( i->second.begin() );
-				}
-				else {
-					if( it->second == i->second.begin()->second )
-						i->second.erase( i->second.begin() );
-					else
-						i->second.begin()->second -= it->second;
-					
-					last = it++;
-					array.erase( last );
-
-					break;
-				}
-
-				if( i->second.size() == 0 ) {
-					it ++;
-					break;
-				}
+			if( SeekAndDestroy( it, mapIt ) ) {
+				last = it++;
+				array.erase( last );
 			}
 
-			if( i->second.size() == 0 )
-				data.erase( i->first );
+			if( mapIt->second.size() == 0 )
+				data.erase( mapIt->first );
 		}
-
-		// cout << array.size() << endl;
-		// for( auto x : array ) {
-		// 	cout << x.first << " " << x.second << endl;
-		// }
 	}
 
-	// expired ( date ) const
-
 private:
-	// todo
+
+	bool SadButTrue( string & original, unordered_map<string, map<CDate, int>>::iterator & mapIt )
+	{
+		string copy = original;
+		bool found = true;
+
+		for( uint32_t i = 0; i < copy.length(); i++ ) {
+			if( NothingElseMatters( 'a', copy, i, mapIt, found )
+				|| NothingElseMatters( 'A', copy, i, mapIt, found ) )
+				return true;
+
+			copy[ i ] = original[ i ];
+		}
+
+		if( found )
+			return false;
+		return true;
+	}
+
+	bool NothingElseMatters( int offset, string & copy, int pos, unordered_map<string, map<CDate, int>>::iterator & mapIt, bool & found )
+	{
+		for( int diff = offset; diff < 'z' - 'a' + offset; diff++ ) {
+			copy[ pos ] = diff;
+			auto used = data.find( copy );
+
+			if( used != data.end() ) {
+				if( found )
+					return true;
+				found = true;
+				mapIt = used;
+			}
+		}
+
+		return false;
+	}
+
+	bool SeekAndDestroy( list<pair<string, int>>::iterator & it, unordered_map<string, map<CDate, int>>::iterator mapIt )
+	{
+		while( true ) {
+			if( it->second > mapIt->second.begin()->second ) {
+				it->second -= mapIt->second.begin()->second;
+				mapIt->second.erase( mapIt->second.begin() );
+			}
+			else {
+				if( it->second == mapIt->second.begin()->second )
+					mapIt->second.erase( mapIt->second.begin() );
+				else
+					mapIt->second.begin()->second -= it->second;
+				
+				return true;
+			}
+
+			if( mapIt->second.size() == 0 ) {
+				it ++;
+				return false;
+			}
+		}
+	}
 
 	unordered_map<string, map<CDate, int>> data;
 
-	// Unordered_map nazev zbozi jako key a value bude map serazeny podle data trvanlivosti.
 };
 
 #ifndef __PROGTEST__
