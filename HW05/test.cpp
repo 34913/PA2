@@ -63,8 +63,7 @@ class CSupermarket
 {
 public:
 
-	CSupermarket()
-	{}
+	CSupermarket() {}
 
 	CSupermarket & store( const string & name, const CDate & expiryDate, int count )
 	{
@@ -115,12 +114,9 @@ public:
 	
 	void sell( list<pair<string, int>> & array )
 	{
-		// maybe save all iterators in some list and then pop them at once
-
 		auto it = array.begin();
 
 		list<string> rm;
-
 		while( it != array.end() ) {
 			auto mapIt = data.find( it->first );
 
@@ -131,29 +127,44 @@ public:
 				}
 			}
 
-			if( SeekAndDestroy( it, mapIt ) )
+			if( SeekAndDestroy( it, mapIt, rm ) )
 				it = array.erase( it );
-			else {
-				rm.push_back( mapIt->first );
+			else
 				it++;
-			}
 		}
 
 		auto cycleIt = rm.begin();
 		while( cycleIt != rm.end() ) {
-			data.erase( *cycleIt );
+			auto mapIt = data.find( *cycleIt );
+			if( mapIt != data.end() )
+				data.erase( mapIt );
 			cycleIt++;
+		}
+	}
+
+	void print()
+	{
+		auto dataIt = data.begin();
+		while( dataIt != data.end() ) {
+			cout << dataIt->first << endl;
+			auto it = dataIt->second.begin();
+			while( it != dataIt->second.end() ) {
+				cout << "\t" << it->first.day << "." << it->first.month << "." << it->first.year << " " << it->second << endl;
+				it++;
+			}
+
+			dataIt++;		
 		}
 	}
 
 private:
 
-	bool SadButTrue( string & original, unordered_map<string, map<CDate, int>>::iterator & mapIt )
+	bool SadButTrue( const string & original, unordered_map<string, map<CDate, int>>::iterator & mapIt )
 	{
 		string copy = original;
 		bool found = false;
 
-		for( uint32_t i = 0; i < copy.length(); i++ ) {
+		for( uint32_t i = 0; i < original.length(); i++ ) {
 			if( NothingElseMatters( 'a', copy, i, mapIt, found )
 				|| NothingElseMatters( 'A', copy, i, mapIt, found ) )
 				return true;
@@ -161,14 +172,13 @@ private:
 			copy[ i ] = original[ i ];
 		}
 
-		if( found )
-			return false;
-		return true;
+		return !found;
 	}
 
 	bool NothingElseMatters( int offset, string & copy, int pos, unordered_map<string, map<CDate, int>>::iterator & mapIt, bool & found )
 	{
-		for( int diff = offset; diff < 'z' - 'a' + offset; diff++ ) {
+		int end = 'z' - 'a' + offset;
+		for( char diff = offset; diff < end; diff++ ) {
 			copy[ pos ] = diff;
 			auto used = data.find( copy );
 
@@ -183,12 +193,11 @@ private:
 		return false;
 	}
 
-	bool SeekAndDestroy( list<pair<string, int>>::iterator & it, unordered_map<string, map<CDate, int>>::iterator mapIt )
+	bool SeekAndDestroy( list<pair<string, int>>::iterator & it, unordered_map<string, map<CDate, int>>::iterator & mapIt, list<string> & rm )
 	{
-		while( true ) {
-			if( mapIt->second.size() == 0 )
-				return false;
-
+		if( mapIt->second.size() == 0 )
+			return false;
+		while( mapIt->second.size() != 0 ) {
 			if( it->second > mapIt->second.begin()->second ) {
 				it->second -= mapIt->second.begin()->second;
 				mapIt->second.erase( mapIt->second.begin() );
@@ -198,10 +207,16 @@ private:
 					mapIt->second.erase( mapIt->second.begin() );
 				else
 					mapIt->second.begin()->second -= it->second;
-				
+
+				if( mapIt->second.size() == 0 )
+					rm.push_back( mapIt->first );
+
 				return true;
 			}
 		}
+
+		rm.push_back( mapIt->first );
+		return false;
 	}
 
 	unordered_map<string, map<CDate, int>> data;
@@ -211,15 +226,12 @@ private:
 #ifndef __PROGTEST__
 int main(void)
 {
-
 	CSupermarket s;
 	s.store("bread", CDate(2016, 4, 30), 100)
 		.store("butter", CDate(2016, 5, 10), 10)
 		.store("beer", CDate(2016, 8, 10), 50)
 		.store("bread", CDate(2016, 4, 25), 100)
 		.store("okey", CDate(2016, 7, 18), 5);
-
-	/*
 
 	list<pair<string, int>> l0 = s.expired(CDate(2018, 4, 30));
 	assert(l0.size() == 4);
@@ -301,14 +313,23 @@ int main(void)
 	assert(l15.size() == 1);
 	assert((l15 == list<pair<string, int>>{{"ccccc", 10}}));
 
-	*/
+	s.store("bread", CDate(2016, 4, 30), 134)
+		.store("bread", CDate(2016, 4, 30), 134)
+		.store("bread", CDate(2016, 2, 30), 134)
+		.store("butter", CDate(2015, 5, 11), 79)
+		.store("butter", CDate(2015, 5, 10), 79)
+		.store("butter", CDate(2012, 5, 10), 79)
+		.store("beer", CDate(2018, 8, 10), 48)
+		.store("beer", CDate(2017, 5, 10), 48)
+		.store("beer", CDate(2017, 5, 8), 48)
+		.store("bread", CDate(2016, 4, 25), 24)
+		.store("okey", CDate(2016, 7, 18), 2);
 
-	s.store("bread", CDate(2016, 4, 30), 100)
-		.store("butter", CDate(2016, 5, 10), 10)
-		.store("beer", CDate(2016, 8, 10), 50)
-		.store("bread", CDate(2016, 4, 25), 100)
-		.store("okey", CDate(2016, 7, 18), 5);
-
+	s.print();
+	l13 = s.expired(CDate(2017, 1, 1));
+	cout << l13.size() << endl;
+	for( auto x : l13 )
+		cout << x.first << " " << x.second << endl;
 
 	return EXIT_SUCCESS;
 }
