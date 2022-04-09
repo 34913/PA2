@@ -54,7 +54,7 @@ public:
 	}
 };
 
-bool cmp( const pair<string, int> & a, const pair<string, int> & b )
+bool pairCompare( const pair<string, int> & a, const pair<string, int> & b )
 {
 	return a.second > b.second;
 }
@@ -63,16 +63,19 @@ class CSupermarket
 {
 public:
 
-	CSupermarket & store( string name, CDate expiryDate, int count )
+	CSupermarket()
+	{}
+
+	CSupermarket & store( const string & name, const CDate & expiryDate, int count )
 	{
 		data[ name ][ expiryDate ] += count;
 
 		return *this;
 	}
 	
-	list<pair<string, int>> expired( CDate expDate )
+	list<pair<string, int>> expired( const CDate & expDate ) const
 	{
-		set<pair<string, int>, bool(*)(const pair<string, int> &, const pair<string, int> &)> array( cmp );
+		set<pair<string, int>, bool(*)(const pair<string, int> &, const pair<string, int> &)> array( pairCompare );
 		auto dataIt = data.begin();
 
 		while( dataIt != data.end() ) {
@@ -208,12 +211,15 @@ private:
 #ifndef __PROGTEST__
 int main(void)
 {
+
 	CSupermarket s;
 	s.store("bread", CDate(2016, 4, 30), 100)
 		.store("butter", CDate(2016, 5, 10), 10)
 		.store("beer", CDate(2016, 8, 10), 50)
 		.store("bread", CDate(2016, 4, 25), 100)
 		.store("okey", CDate(2016, 7, 18), 5);
+
+	/*
 
 	list<pair<string, int>> l0 = s.expired(CDate(2018, 4, 30));
 	assert(l0.size() == 4);
@@ -294,6 +300,15 @@ int main(void)
 	s.sell(l15);
 	assert(l15.size() == 1);
 	assert((l15 == list<pair<string, int>>{{"ccccc", 10}}));
+
+	*/
+
+	s.store("bread", CDate(2016, 4, 30), 100)
+		.store("butter", CDate(2016, 5, 10), 10)
+		.store("beer", CDate(2016, 8, 10), 50)
+		.store("bread", CDate(2016, 4, 25), 100)
+		.store("okey", CDate(2016, 7, 18), 5);
+
 
 	return EXIT_SUCCESS;
 }
