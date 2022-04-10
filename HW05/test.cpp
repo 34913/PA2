@@ -65,6 +65,23 @@ public:
 
 	CSupermarket() {}
 
+	void print()
+	{
+		cout << endl;
+		auto dataIt = data.begin();
+		while( dataIt != data.end() ) {
+			cout << dataIt->first << endl;
+			auto it = dataIt->second.begin();
+			while( it != dataIt->second.end() ) {
+				cout << "\t" << it->first.day << "." << it->first.month << "." << it->first.year << " " << it->second << endl;
+				it++;
+			}
+
+			dataIt++;		
+		}
+		cout << endl;
+	}
+
 	CSupermarket & store( const string & name, const CDate & expiryDate, int count )
 	{
 		data[ name ][ expiryDate ] += count;
@@ -74,7 +91,7 @@ public:
 	
 	list<pair<string, int>> expired( const CDate & expDate ) const
 	{
-		set<pair<string, int>, bool(*)(const pair<string, int> &, const pair<string, int> &)> array( pairCompare );
+		multiset<pair<string, int>, bool(*)(const pair<string, int> &, const pair<string, int> &)> array( pairCompare );
 		auto dataIt = data.begin();
 
 		while( dataIt != data.end() ) {
@@ -114,111 +131,143 @@ public:
 	
 	void sell( list<pair<string, int>> & array )
 	{
-		auto it = array.begin();
+		auto arrIt = array.begin();
 
 		list<string> rm;
-		while( it != array.end() ) {
-			auto mapIt = data.find( it->first );
 
-			if( mapIt == data.end() ) {
-				if( SadButTrue( it->first, mapIt ) ) {
-					it++;
+		while( arrIt != array.end() ) {
+			if( arrIt->second == 0 ) {
+				arrIt = array.erase( arrIt );
+				continue;
+			}
+			
+			auto dataIt = data.find( arrIt->first );
+
+			if( dataIt == data.end() ) {
+				if( !FindSimilar( arrIt->first, dataIt ) ) {
+					++ arrIt;
 					continue;
 				}
 			}
 
-			if( SeekAndDestroy( it, mapIt, rm ) )
-				it = array.erase( it );
-			else
-				it++;
+			if( SellExplicit( dataIt, arrIt, &rm ) )
+				arrIt = array.erase( arrIt );
+			else 
+				++ arrIt;
 		}
 
-		auto cycleIt = rm.begin();
-		while( cycleIt != rm.end() ) {
-			auto mapIt = data.find( *cycleIt );
-			if( mapIt != data.end() )
-				data.erase( mapIt );
-			cycleIt++;
+		auto it = rm.begin();
+		while( it != rm.end() ) {
+			data.erase( *it );
+			++ it;
 		}
-	}
 
-	void print()
-	{
-		auto dataIt = data.begin();
-		while( dataIt != data.end() ) {
-			cout << dataIt->first << endl;
-			auto it = dataIt->second.begin();
-			while( it != dataIt->second.end() ) {
-				cout << "\t" << it->first.day << "." << it->first.month << "." << it->first.year << " " << it->second << endl;
-				it++;
-			}
-
-			dataIt++;		
-		}
+		return;
 	}
 
 private:
 
-	bool SadButTrue( const string & original, unordered_map<string, map<CDate, int>>::iterator & mapIt )
+	bool FindSimilarSimple( const string & name, unordered_map<string, map<CDate, int>>::iterator & dataIt )
 	{
-		string copy = original;
+		dataIt = data.begin();
+		unordered_map<string, map<CDate, int>>::iterator out;
 		bool found = false;
 
-		for( uint32_t i = 0; i < original.length(); i++ ) {
-			if( NothingElseMatters( 'a', copy, i, mapIt, found )
-				|| NothingElseMatters( 'A', copy, i, mapIt, found ) )
-				return true;
+		while( dataIt != data.end() ) {
+			if( dataIt->first.length() != name.length() ) {
+				++ dataIt;
+				continue;
+			}
+			int diff = 0;
+			
+			for( int i = 0; i < name.length(); i++ ) {
+				if( name[ i ] != dataIt->first[ i ] )
+					if( ++ diff == 2 )
+						break;
+			}
 
-			copy[ i ] = original[ i ];
+			if( diff == 1 ) {
+				if( found )
+					return false;
+				found = true;
+				out = dataIt;
+			}
 		}
 
-		return !found;
+		dataIt = out;
+
+		return found;
 	}
 
-	bool NothingElseMatters( int offset, string & copy, int pos, unordered_map<string, map<CDate, int>>::iterator & mapIt, bool & found )
+	bool FindSimilar( const string & name, unordered_map<string, map<CDate, int>>::iterator & dataIt )
 	{
-		int end = 'z' - 'a' + offset;
-		for( char diff = offset; diff < end; diff++ ) {
-			copy[ pos ] = diff;
-			auto used = data.find( copy );
+		bool found = false;
+		string copy = name;
 
-			if( used != data.end() ) {
+		cout << name << endl;
+		for( uint32_t i = 0; i < name.length(); i++ ) {
+			if( CycleFind( copy, i, found, 'a', dataIt ) )
+				return false;
+			if( CycleFind( copy, i, found, 'A', dataIt ) )
+				return false;
+
+
+			copy[ i ] = name[ i ];
+		}
+
+		return found;
+	}
+
+	bool CycleFind( string & copy, int pos, bool & found, char offset, unordered_map<string, map<CDate, int>>::iterator & back )
+	{
+		char end = 'z' - 'a' + offset;
+		cout << pos << " " << found << " " << (char)offset << endl;
+		for( char diff = offset; diff <= end; diff++ ) {
+			copy[ pos ] = diff;
+			cout << copy << endl;
+
+			auto it = data.find( copy );
+			if( it != data.end() ) {
 				if( found )
 					return true;
 				found = true;
-				mapIt = used;
+				back = it;
 			}
 		}
-
 		return false;
 	}
 
-	bool SeekAndDestroy( list<pair<string, int>>::iterator & it, unordered_map<string, map<CDate, int>>::iterator & mapIt, list<string> & rm )
+	bool SellExplicit( unordered_map<string, map<CDate, int>>::iterator & dataIt, list<pair<string, int>>::iterator & arrIt, list<string> * rm )
 	{
-		if( mapIt->second.size() == 0 )
+		if( dataIt->second.size() == 0 )
 			return false;
-		while( mapIt->second.size() != 0 ) {
-			if( it->second > mapIt->second.begin()->second ) {
-				it->second -= mapIt->second.begin()->second;
-				mapIt->second.erase( mapIt->second.begin() );
+
+		while( dataIt->second.size() != 0 ) {
+			auto temp = dataIt->second.begin();
+
+			if( arrIt->second > temp->second ) {
+				arrIt->second -= temp->second;
+				dataIt->second.erase( temp );
 			}
 			else {
-				if( it->second == mapIt->second.begin()->second )
-					mapIt->second.erase( mapIt->second.begin() );
-				else
-					mapIt->second.begin()->second -= it->second;
+				if ( arrIt->second == temp->second ) {
+					dataIt->second.erase( temp );
+					if( dataIt->second.size() == 0 )
+						rm->push_back( dataIt->first );
+				}
+				else 
+					temp->second -= arrIt->second;
 
-				if( mapIt->second.size() == 0 )
-					rm.push_back( mapIt->first );
-
+				arrIt->second = 0;
 				return true;
 			}
 		}
 
-		rm.push_back( mapIt->first );
+		rm->push_back( dataIt->first );
+
 		return false;
 	}
-
+	
 	unordered_map<string, map<CDate, int>> data;
 
 };
@@ -313,6 +362,8 @@ int main(void)
 	assert(l15.size() == 1);
 	assert((l15 == list<pair<string, int>>{{"ccccc", 10}}));
 
+	//
+
 	s.store("bread", CDate(2016, 4, 30), 134)
 		.store("bread", CDate(2016, 4, 30), 134)
 		.store("bread", CDate(2016, 2, 30), 134)
@@ -326,10 +377,28 @@ int main(void)
 		.store("okey", CDate(2016, 7, 18), 2);
 
 	s.print();
-	l13 = s.expired(CDate(2017, 1, 1));
-	cout << l13.size() << endl;
-	for( auto x : l13 )
-		cout << x.first << " " << x.second << endl;
+	auto l16 = s.expired(CDate(2025, 1, 1));
+	s.store("Butter", CDate(2020,1,1), 1);
+
+	l16 = {{"ccccc", 10},{"butter",15},{"ccccd",100},{"Butter",222},{"butter",1},{"Butter",1} };
+	s.sell(l16);
+	assert(l16.size() == 3);
+	assert((l16 == list<pair<string, int>>{{"ccccc", 10}, {"Butter",221}, {"Butter",1}}));
+
+	CSupermarket s2;
+	s2.store( "butter", CDate(2020,1,1), 1 );
+	list<pair<string, int>> l17{{"Butter", 1}, {"butter",1}};
+	s2.sell(l17);
+	assert(l17.size() == 1);
+	assert((l17 == list<pair<string, int>>{{"butter",1}}));
+
+	s.print();
+
+	list<pair<string, int>> l18{{"okay", 6}, {"okei",2},{"okay",1}};
+	s.sell(l18);
+	assert(l18.size() == 2);
+	assert((l18 == list<pair<string, int>>{{"okei",1},{"okay",1}}));
+	s.print();
 
 	return EXIT_SUCCESS;
 }
