@@ -167,50 +167,14 @@ public:
 
 private:
 
-	bool FindSimilarSimple( const string & name, unordered_map<string, map<CDate, int>>::iterator & dataIt )
-	{
-		dataIt = data.begin();
-		unordered_map<string, map<CDate, int>>::iterator out;
-		bool found = false;
-
-		while( dataIt != data.end() ) {
-			if( dataIt->first.length() != name.length() ) {
-				++ dataIt;
-				continue;
-			}
-			int diff = 0;
-			
-			for( int i = 0; i < name.length(); i++ ) {
-				if( name[ i ] != dataIt->first[ i ] )
-					if( ++ diff == 2 )
-						break;
-			}
-
-			if( diff == 1 ) {
-				if( found )
-					return false;
-				found = true;
-				out = dataIt;
-			}
-		}
-
-		dataIt = out;
-
-		return found;
-	}
-
 	bool FindSimilar( const string & name, unordered_map<string, map<CDate, int>>::iterator & dataIt )
 	{
 		bool found = false;
 		string copy = name;
 
-		cout << name << endl;
 		for( uint32_t i = 0; i < name.length(); i++ ) {
-			if( CycleFind( copy, i, found, 'a', dataIt ) )
+			if( CycleFind( copy, i, found, dataIt ) )
 				return false;
-			if( CycleFind( copy, i, found, 'A', dataIt ) )
-				return false;
-
 
 			copy[ i ] = name[ i ];
 		}
@@ -218,13 +182,10 @@ private:
 		return found;
 	}
 
-	bool CycleFind( string & copy, int pos, bool & found, char offset, unordered_map<string, map<CDate, int>>::iterator & back )
+	bool CycleFind( string & copy, int pos, bool & found, unordered_map<string, map<CDate, int>>::iterator & back )
 	{
-		char end = 'z' - 'a' + offset;
-		cout << pos << " " << found << " " << (char)offset << endl;
-		for( char diff = offset; diff <= end; diff++ ) {
+		for( char diff = ' '; diff <= '~'; diff++ ) {
 			copy[ pos ] = diff;
-			cout << copy << endl;
 
 			auto it = data.find( copy );
 			if( it != data.end() ) {
@@ -394,10 +355,10 @@ int main(void)
 
 	s.print();
 
-	list<pair<string, int>> l18{{"okay", 6}, {"okei",2},{"okay",1}};
+	list<pair<string, int>> l18{{"oke1", 7}, {"okey",1}};
 	s.sell(l18);
-	assert(l18.size() == 2);
-	assert((l18 == list<pair<string, int>>{{"okei",1},{"okay",1}}));
+	assert(l18.size() == 1);
+	assert((l18 == list<pair<string, int>>{{"okey",1}}));
 	s.print();
 
 	return EXIT_SUCCESS;
