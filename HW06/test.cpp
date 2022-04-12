@@ -29,35 +29,22 @@ class CInterface
 public:
 	virtual int GetSize() = 0;
 
-	virtual CInterface() = 0;
-	
-	virtual bool operator==( const CInterface & x ) = 0;
+	bool operator==( const CInterface & x )
+    {
+        return typeid( *this ) == typeid( x );
+    }
 	
 	bool operator!=( const CInterface & x )
 	{
 		return !( *this == x );
 	}
 
-	virtual friend ostream & operator << ( ostream & os, const CInterface ) = 0;
-	// {
-	// 	tm *temp = localtime( &x.date );
-	// 	stringstream ss("");
-	// 	ss << std::setw( 4 ) << std::setfill( '0' ) << 1900 + temp->tm_year << '-'
-	// 		<< std::setw( 2 ) << std::setfill( '0' ) << temp->tm_mon + 1 << '-'
-	// 		<<std::setw( 2 ) << std::setfill( '0' ) << temp->tm_mday;
-	// 	os << ss.str();
-	// 	os.flush();
-	// 	cout << ss.str() << endl;
-	// 	return os;
-	// }
-
-	
+	virtual friend ostream & operator << ( ostream & os, const & CInterface ) = 0;
 
 }
 
 class CDataTypeInt: public CInterface
 {
-
 public:
 
 	CDataTypeInt() {}
@@ -67,17 +54,25 @@ public:
 		return 4;
 	}
 
-	virtual bool operator==( const CDataTypeInt x ) = 0;
-	
-
-
-
-
+    friend ostream & operator<<( ostream & os, const & CInterface ) override
+    {
+        os << "int";
+    }
 
 };
-class CDataTypeDouble
+class CDataTypeDouble: public CInterface
 {
-	// todo
+public:
+    int GetSize() override
+    {
+        return 8;
+    }
+
+    friend ostream & operator<<( ostream & os, const & CInterface ) override
+    {
+        os << "double";
+    }
+
 };
 class CDataTypeEnum
 {
