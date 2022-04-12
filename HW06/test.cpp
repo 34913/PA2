@@ -76,7 +76,7 @@ public:
 };
 class CDataTypeEnum
 {
-	// todo
+    
 };
 class CDataTypeStruct
 {
@@ -86,7 +86,31 @@ class CDataTypeStruct
 static bool whitespaceMatch(const string &a,
 							const string &b)
 {
-	// todo
+    int posA = 0;
+    int posB = 0;
+
+    while( true ) {
+        if( a[ posA ] == '\0' && b[ posB ] == '\0' )
+            return true;
+        if( a[ posA ] == '\0' )
+            return false;
+        if( b[ posB ] == '\0' )
+            return false;
+
+        if( a[ posA ] == ' ' || a[ posA ] == '\t' || a[ posA ] == '\n' ) {
+            posA++;
+            continue;
+        }
+        
+        if( b[ posB ] == ' ' || b[ posB ] == '\t' || b[ posB ] == '\n' ) {
+            posB++;
+            continue;
+        }
+
+        if( a[ posA ] != b[ posB ] )
+            return false;
+    }
+
 	return true;
 }
 template <typename T_>
