@@ -27,61 +27,255 @@ using namespace std;
 class CInterface
 {
 public:
-	virtual int GetSize() = 0;
+	const int id;
 
-	bool operator==( const CInterface & x )
+	CInterface(int id)
+	:	id(id)
+	{}
+
+	virtual size_t getSize() const  = 0;
+
+	virtual bool operator==( const CInterface & x ) const
     {
-        return typeid( *this ) == typeid( x );
+		return this->id == x.id;
     }
 	
-	bool operator!=( const CInterface & x )
+	bool operator!=( const CInterface & x ) const
 	{
 		return !( *this == x );
 	}
 
-	virtual friend ostream & operator << ( ostream & os, const & CInterface ) = 0;
+	virtual void print( ostream & os ) const = 0;
 
-}
+	friend ostream & operator << ( ostream & os, const CInterface & p )
+	{
+		p.print( os );
+		return os;
+	}
+ 
+	virtual CInterface * clone() const = 0;
+
+	virtual ~CInterface()
+	{}
+
+};
 
 class CDataTypeInt: public CInterface
 {
 public:
 
-	CDataTypeInt() {}
+	CDataTypeInt()
+	:	CInterface(1)
+	{}
 
-	int GetSize() override
+	size_t getSize() const override
 	{
 		return 4;
 	}
 
-    friend ostream & operator<<( ostream & os, const & CInterface ) override
+    void print( ostream & os ) const override
     {
         os << "int";
     }
+
+	CDataTypeInt * clone() const override
+	{
+		return new CDataTypeInt ( *this );
+	}
 
 };
 class CDataTypeDouble: public CInterface
 {
 public:
-    int GetSize() override
+	CDataTypeDouble()
+	:	CInterface(2)
+	{}
+
+    size_t getSize() const override
     {
         return 8;
     }
 
-    friend ostream & operator<<( ostream & os, const & CInterface ) override
+	void print( ostream & os) const override
     {
         os << "double";
     }
 
+	CDataTypeDouble * clone() const override
+	{
+		return new CDataTypeDouble( *this );
+	}
+
 };
-class CDataTypeEnum
+
+class CDataTypeEnum: public CInterface
 {
-    
+private:
+	vector<string> types;
+
+public:
+
+	CDataTypeEnum()
+	:	CInterface(3)
+	{}
+
+	size_t getSize() const override
+	{
+		return 4;
+	}
+
+	CDataTypeEnum & add( const string & name )
+	{
+		for( size_t i = 0; i < types.size(); i++ ) {
+			if( types[ i ] == name ) {
+				string str = "Duplicate enum value: ";
+				str += name;
+				throw invalid_argument( str );
+			}
+		}
+
+		string copy = name;
+		types.push_back( copy );
+		return *this;
+	}
+
+	CDataTypeEnum & add( const char * name )
+	{
+		string str = name;
+		return add( str );
+	}
+
+	bool operator==( const CInterface & x ) const override
+	{
+		if( this->id != x.id )
+			return false;
+
+		CDataTypeEnum *data = (CDataTypeEnum*) &x;
+
+		if( data->types.size() != types.size() )
+			return false;
+
+		for( size_t i = 0; i < types.size(); i++ ) {
+			if( types[ i ].compare( data->types[ i ] ) != 0 )
+				return false;
+		}
+		return true;
+	}
+
+	void print( ostream & os ) const override
+	{
+		os << "enum" << endl << "{" << endl;
+		for( size_t i = 0; i < types.size(); i++ ) {
+			os << types[ i ];
+			if( i + 1 == types.size() )
+				os << endl;
+			else
+				os << "," << endl;
+		}
+		os << "}";
+	}
+
+	CDataTypeEnum * clone() const override
+	{
+		return new CDataTypeEnum( *this );
+	}
+
 };
-class CDataTypeStruct
+class CDataTypeStruct: public CInterface
 {
-	// todo
+private:
+	vector<pair<string, CInterface*>> content;
+
+public:
+
+	CDataTypeStruct()
+	:	CInterface(4)
+	{}
+
+	size_t getSize() const override
+	{
+		size_t size = 0;
+		for( size_t i = 0; i < content.size(); i++ )
+			size += content[ i ].second->getSize();
+		return size;
+	}
+
+	CDataTypeStruct & operator=( const CDataTypeStruct & x ) const
+	{
+		return *( x.clone() );
+	}
+
+	CDataTypeStruct & addField( const string & name, const CInterface & type )
+	{
+		for( size_t i = 0; i < content.size(); i++ ) {
+			if( name == content[ i ].first ) {
+				string str = "Duplicate field: ";
+				str += name;
+				throw invalid_argument( str );
+			}
+		}
+
+		content.push_back( { name, type.clone() } );
+		return *this;
+	}
+
+	CInterface & field( const string & name ) const
+	{
+		for( size_t i = 0; i < content.size(); i++ )
+		{
+			if( name == content[ i ].first )
+				return *content[ i ].second;
+		}
+
+		string str = "Unknown field: ";
+		str += name;
+		throw invalid_argument( str );
+	}
+
+	bool operator==( const CInterface & x ) const override
+	{
+		if( this->id != x.id )
+			return false;
+
+		CDataTypeStruct *data = (CDataTypeStruct*) &x;
+		if( data->content.size() != content.size() )
+			return false;
+
+		for( size_t i = 0; i < content.size(); i++ ) {
+			if( *data->content[ i ].second != *content[ i ].second )
+				return false;
+		}
+		return true;
+	}
+
+	void print( ostream & os ) const override
+	{
+		os << "struct" << endl << "{" << endl;
+
+		for( size_t i = 0; i < content.size(); i++ )
+			os << *content[ i ].second << " " << content[ i ].first << ";" << endl;
+		
+		os << "}";
+	}
+
+	CDataTypeStruct * clone() const override
+	{
+		CDataTypeStruct * copy = new CDataTypeStruct();
+
+		for( size_t i = 0; i < content.size(); i++ )
+			copy->content.push_back( { content[ i ].first, content[ i ].second->clone() } );
+
+		return copy;
+	}
+
+	~CDataTypeStruct()
+	{
+		// for( size_t i = 0; i < content.size(); i++ )
+			// delete content[ i ].second;
+	}
+
 };
+
 #ifndef __PROGTEST__
 static bool whitespaceMatch(const string &a,
 							const string &b)
@@ -109,6 +303,9 @@ static bool whitespaceMatch(const string &a,
 
         if( a[ posA ] != b[ posB ] )
             return false;
+
+		posA++;
+		posB++;
     }
 
 	return true;
@@ -134,6 +331,7 @@ int main(void)
 	CDataTypeStruct c = CDataTypeStruct().addField("m_First", CDataTypeInt()).addField("m_Second", CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("DEAD")).addField("m_Third", CDataTypeDouble());
 
 	CDataTypeStruct d = CDataTypeStruct().addField("m_Length", CDataTypeInt()).addField("m_Status", CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("DEAD")).addField("m_Ratio", CDataTypeInt());
+	
 	assert(whitespaceMatch(a, "struct\n"
 							  "{\n"
 							  "  int m_Length;\n"
@@ -186,9 +384,10 @@ int main(void)
 							  "  int m_Ratio;\n"
 							  "}"));
 
-	assert(a != b);
+
 	assert(a == c);
 	assert(a != d);
+	assert(a != b);
 	assert(a.field("m_Status") == CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("DEAD"));
 	assert(a.field("m_Status") != CDataTypeEnum().add("NEW").add("BROKEN").add("FIXED").add("DEAD"));
 	assert(a != CDataTypeInt());
@@ -283,7 +482,7 @@ int main(void)
 	}
 	catch (const invalid_argument &e)
 	{
-		assert(e.what() == "Duplicate field: m_Status"sv);
+		assert(e.what() == "Duplicate field: m_Status"s);
 	}
 
 	try
@@ -293,7 +492,7 @@ int main(void)
 	}
 	catch (const invalid_argument &e)
 	{
-		assert(e.what() == "Unknown field: m_Fail"sv);
+		assert(e.what() == "Unknown field: m_Fail"s);
 	}
 
 	try
@@ -304,7 +503,7 @@ int main(void)
 	}
 	catch (const invalid_argument &e)
 	{
-		assert(e.what() == "Duplicate enum value: FIRST"sv);
+		assert(e.what() == "Duplicate enum value: FIRST"s);
 	}
 
 	return EXIT_SUCCESS;
