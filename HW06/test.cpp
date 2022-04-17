@@ -24,6 +24,8 @@
 using namespace std;
 #endif /* __PROGTEST__ */
 
+//
+
 class CInterface
 {
 public:
@@ -47,9 +49,9 @@ public:
 
 	virtual void print( ostream & os ) const = 0;
 
-	friend ostream & operator << ( ostream & os, const CInterface & p )
+	friend ostream & operator << ( ostream & os, const CInterface & x )
 	{
-		p.print( os );
+		x.print( os );
 		return os;
 	}
  
@@ -184,7 +186,7 @@ public:
 class CDataTypeStruct: public CInterface
 {
 private:
-	vector<pair<string, CInterface*>> content;
+	vector<pair<string, shared_ptr<CInterface>>> content;
 
 public:
 
@@ -200,11 +202,6 @@ public:
 		return size;
 	}
 
-	CDataTypeStruct & operator=( const CDataTypeStruct & x ) const
-	{
-		return *( x.clone() );
-	}
-
 	CDataTypeStruct & addField( const string & name, const CInterface & type )
 	{
 		for( size_t i = 0; i < content.size(); i++ ) {
@@ -215,7 +212,9 @@ public:
 			}
 		}
 
-		content.push_back( { name, type.clone() } );
+		shared_ptr<CInterface> copy( type.clone() );
+		content.push_back( { name, copy } );
+
 		return *this;
 	}
 
@@ -260,18 +259,7 @@ public:
 
 	CDataTypeStruct * clone() const override
 	{
-		CDataTypeStruct * copy = new CDataTypeStruct();
-
-		for( size_t i = 0; i < content.size(); i++ )
-			copy->content.push_back( { content[ i ].first, content[ i ].second->clone() } );
-
-		return copy;
-	}
-
-	~CDataTypeStruct()
-	{
-		// for( size_t i = 0; i < content.size(); i++ )
-			// delete content[ i ].second;
+		return new CDataTypeStruct( *this );
 	}
 
 };
@@ -324,14 +312,21 @@ static bool whitespaceMatch(const T_ &x,
 int main(void)
 {
 
-	CDataTypeStruct a = CDataTypeStruct().addField("m_Length", CDataTypeInt()).addField("m_Status", CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("DEAD")).addField("m_Ratio", CDataTypeDouble());
+	CDataTypeStruct a = CDataTypeStruct()
+		.addField("m_Length", CDataTypeInt())
+		.addField("m_Status", CDataTypeEnum()
+			.add("NEW")
+			.add("FIXED")
+			.add("BROKEN")
+			.add("DEAD"))
+		.addField("m_Ratio", CDataTypeDouble());
 
 	CDataTypeStruct b = CDataTypeStruct().addField("m_Length", CDataTypeInt()).addField("m_Status", CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("READY")).addField("m_Ratio", CDataTypeDouble());
 
 	CDataTypeStruct c = CDataTypeStruct().addField("m_First", CDataTypeInt()).addField("m_Second", CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("DEAD")).addField("m_Third", CDataTypeDouble());
 
 	CDataTypeStruct d = CDataTypeStruct().addField("m_Length", CDataTypeInt()).addField("m_Status", CDataTypeEnum().add("NEW").add("FIXED").add("BROKEN").add("DEAD")).addField("m_Ratio", CDataTypeInt());
-	
+
 	assert(whitespaceMatch(a, "struct\n"
 							  "{\n"
 							  "  int m_Length;\n"
@@ -407,6 +402,7 @@ int main(void)
 	assert(a != aOld);
 	assert(a != c);
 	assert(aOld == c);
+
 	assert(whitespaceMatch(a, "struct\n"
 							  "{\n"
 							  "  int m_Length;\n"
@@ -475,6 +471,7 @@ int main(void)
 
 	assert(a.getSize() == 20);
 	assert(b.getSize() == 24);
+
 	try
 	{
 		a.addField("m_Status", CDataTypeInt());
