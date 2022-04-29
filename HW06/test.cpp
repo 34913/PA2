@@ -272,6 +272,44 @@ public:
 
 };
 
+class CDataTypePtr: public CInterface
+{
+private:
+
+	shared_ptr<CInterface> type;
+
+public:
+
+	CDataTypePtr( const CInterface & x )
+	:	CInterface( 6, "ptr" ), type( x.clone() )
+	{}
+
+	size_t getSize() const override
+	{
+		return 8;
+	}
+
+	CInterface * clone() const override
+	{
+		return new CDataTypePtr( *this );
+	}
+
+	CInterface & element() const override
+	{
+		return *type;
+	}
+
+	void print( ostream & os ) const override;
+
+	pair<string, CInterface*> printBrackets() const;
+
+	bool operator==( const CInterface & x ) const override
+	{
+		if( this->id != x.id )
+			return false;
+		return *type == x;
+	}
+};
 class CDataTypeArray: public CInterface
 {
 protected:
@@ -303,23 +341,55 @@ public:
 
 	void print( ostream & os ) const override
 	{
-		pair<string, CInterface*> back = printSize();
+		string brackets = "";
+		CDataTypeArray *ptr = ( CDataTypeArray* )this;
 
-		os << *back.second << back.first;
-	}
-
-	pair<string, CInterface*> printSize() const
-	{
-		CDataTypeArray *ptr = ( CDataTypeArray * ) this;
-		stringstream ss;
 		while( true ) {
-			ss << "[" << to_string( ptr->content.first ) << "]";
+			brackets += "[" + to_string( ptr->content.first ) + "]";
+
 			if( ptr->content.second->id != 5 )
 				break;
 			ptr = ( CDataTypeArray* ) ptr->content.second.get();
 		}
 
-		return { ss.str(), ptr->content.second.get() };
+		if( ptr->content.second->id == 6 ) {
+			pair<string, CInterface*> back = ( ( CDataTypePtr* )ptr->content.second.get() )->printBrackets();
+
+			os << *back.second << back.first << brackets;
+		}
+		else {
+			os << *ptr->content.second << brackets;
+		}
+	}
+
+	pair<string, CInterface*> printSize() const
+	{
+		string str = "[" + to_string( content.first ) + "]";
+
+		if( content.second->id == 5 ) {
+			pair<string, CInterface*> p = ( ( CDataTypeArray* ) content.second.get() )->printSize();
+			return { str + p.first, p.second };
+		}
+		else if( content.second->id == 6 ) {
+			pair<string, CInterface*> p = ( ( CDataTypePtr* )content.second.get() )->printBrackets();
+			return { p.first + str, p.second };
+		}
+		
+		// while( true ) {
+		// 	ss << "[" << to_string( ptr->content.first ) << "]";
+		// 	// if( ptr->content.second->id == 6 ) {
+		// 	// 	ostringstream special;
+		// 	// 	CDataTypePtr* now = ( CDataTypePtr* ) ptr->content.second.get();
+		// 	// 	special << *( ( CInterface* ) now );
+		// 	// 	CInterface * next = ( CInterface* ) 
+		// 	// 	return { special.str() + ss.str(), next };
+		// 	// }
+		// 	if( ptr->content.second->id != 5 )
+		// 		break;
+		// 	ptr = ( CDataTypeArray* ) ptr->content.second.get();
+		// }
+
+		return { str, content.second.get() };
 	}
 
 	bool operator==( const CInterface & x ) const override
@@ -335,52 +405,32 @@ public:
 	}
 
 };
-class CDataTypePtr: public CInterface
+
+void CDataTypePtr::print( ostream & os ) const
 {
-private:
+	CInterface * ptr = ( CInterface* ) this->type.get();
 
-	shared_ptr<CInterface> type;
+	if( ptr->id == 5 ) {
+		// pair<string, CInterface*> back = ( ( CDataTypeArray* ) ptr )->printSize();
+		pair<string, CInterface*> back = printBrackets();
+		os << *back.second << "*" << back.first;
+	}
+	else {
+		os << *type << "*";
+	}
+}
 
-public:
-
-	CDataTypePtr( const CInterface & x )
-	:	CInterface( 6, "ptr" ), type( x.clone() )
-	{}
-
-	size_t getSize() const override
-	{
-		return 8;
+pair<string, CInterface*> CDataTypePtr::printBrackets() const
+{
+	if( type->id == 5 ) {
+		pair<string, CInterface*> p = ( ( CDataTypeArray* ) type.get() )->printSize();
+		string str = "(" + p.first + ")";
+		return { str, p.second };
 	}
 
-	CInterface * clone() const override
-	{
-		return new CDataTypePtr( *this );
-	}
-
-	CInterface & element() const override
-	{
-		return *type;
-	}
-
-	void print( ostream & os ) const override
-	{
-		CInterface * ptr = ( CInterface* ) this->type.get();
-
-		if( ptr->id == 5 ) { 
-			pair<string, CInterface*> back = ( ( CDataTypeArray* ) ptr )->printSize();
-
-			os << *back.second << "(*)" << back.first;
-		}
-		os << "*" << *type;
-	}
-
-	bool operator==( const CInterface & x ) const override
-	{
-		if( this->id != x.id )
-			return false;
-		return *type == x;
-	}
-};
+	string str = "*";
+	return { str, type.get() };
+}
 
 #ifndef __PROGTEST__
 static bool whitespaceMatch(const string &a,
@@ -864,6 +914,7 @@ int main(void)
   assert ( whitespaceMatch ( ar2 . element (), "int[10]") );
   assert ( whitespaceMatch ( ar2 . element () . element (), "int") );
   CDataTypeArray ar3 ( 10, CDataTypeArray ( 20, CDataTypePtr ( CDataTypeInt () ) ) );
+  cout << ar3 << endl;
   assert ( whitespaceMatch ( ar3, "int*[10][20]") );
   assert ( whitespaceMatch ( ar3 . element (), "int*[20]") );
   assert ( whitespaceMatch ( ar3 . element () . element (), "int*") );
@@ -899,6 +950,7 @@ int main(void)
   assert ( whitespaceMatch ( ar7 . element () . element () . element (), "int*") );
   assert ( whitespaceMatch ( ar7 . element () . element () . element () . element (), "int") );
   CDataTypeArray ar8 ( 25, ar7 );
+  cout << ar8 << endl;
   assert ( whitespaceMatch ( ar8, "int**(*[25])[50]") );
   CDataTypePtr ar9 ( ar8 );
   assert ( whitespaceMatch ( ar9, "int**(*(*)[25])[50]") );
