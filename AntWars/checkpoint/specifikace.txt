@@ -1,0 +1,23 @@
+Semestrální práce BI-PA2
+František Holý
+
+Ant wars - přesné specifikace řešeného problému
+
+Celou práci pojmu trochu jako jeden typ online hry, byl hodně známý a nevím jestli se dá ještě najít, ale jmenovalo se to age of war.
+Jednoduchý princip, jsou tři typy bojovníků a každý za jiný obnos peněz, to jest nejaký levný slabý, pak ranged dražší a pak tank z nejvíc.
+Spolu s tím je zde i nějaký level systém daných generací, které ty dané jednotky vylepší všechny nějak progresivně, prostě jako evolve do 
+další generace, s tím že systém jednotek zůstává stejně. Stejně tak může být i mraveniště s nějakým kanónem na obranu.
+
+U mravenců by to mohlo být stejně, jen že daných základen bude víc. Dobré v tomto případě je, že se zde nabízí jednoduchá možnost 
+vytvoření polymorfismu, několik typů mravenců, typy jednotlivých generací mravenců. Takže by se to pravděpodobně hrálo stejně, 
+člověk proti PC s určitým obnosem peněz na začátku a získáváním za zabití protihráčových mravenců.
+
+S tím souvisí i označování, kraje mapy bych nechal stejné, celkové označení stačí tak jak je zadáno, jen bych asi nerozlišoval z jakého
+mraveniště mravenci přišli, jen určité znaky pro konkrétní typy mravenců nebo podle barev, ještě uvidím co bude líp vypadat, ale to 
+je maličkost, která se dá vylepšit na místě.
+
+Ovládání bude jednoduchým zadáváním do konzole v real time, není to tahovka, ale bude se dát pozastavit. Tudíž i trénink jednotek 
+bude v konzoli a každý typ se trénuje jinou dobu. 
+
+Ukládání bude prakticky stejné jako načítání mapy, jen obráceně, jen se musí zohlednit i pohyb a směr mravenců, jejich umístění, počet
+a trénink jednotek ve frontě.

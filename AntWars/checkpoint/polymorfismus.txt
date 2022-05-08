@@ -1,0 +1,32 @@
+Semestrální práce BI-PA2
+František Holý
+
+Ant wars - rozmyšlený polymorfismus
+
+mravenec
+    3 typy mravence -> typy bojovníků
+    warrior
+        - útok na blízko, průměrné životy
+    
+    ranged
+        - útok na dálku, menší životy
+
+    tank
+        - útok na blízko, větší životy
+    
+typ hry
+    automat - dva počítače proti sobě
+    pc vs user - hráč proti počítači
+
+úroveň civilaze mravenců
+    několik rozdílných levelů
+    - podle toho se odvýjí i možnost nabídky obraných zbraní, životů základny
+    - civilaze s vyšším levelem než nižší civilace má menší bonus k útoku nebo životům,
+        nějaké postupné zvyšování, protože je různá úroveň například střelné zbraně a luku s šípy
+        (jen ukazuji na reálný příklad)
+	- podle toho bude i jiné grafické vykreslení mraveniště, aby se dalo rozeznat úroveň civilaze
+
+typy mraveniště
+	- budou se dost odvíjet od úrovně civilazace
+	- realizuje rozdílné vykreslení mravenišť
+
