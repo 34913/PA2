@@ -2,8 +2,10 @@
 
 #include "Point.h"
 #include "Stats.h"
-#include <math.h>
 #include "TypeCode.h"
+#include "UniqID.h"
+
+#include <math.h>
 
 class Object
 {
@@ -15,18 +17,15 @@ protected:
 
 public:
 
+	const long id;
+
 	const TypeCode& type;
 
-	Object(const Point& coords, const Stats& values, const TypeCode& type)
-		:coords(coords),
-		values(values),
-		type(type)
-	{}
+	Object(const Point& coords, const Stats& values, const TypeCode& type);
 	
-	~Object()
-	{}
+	~Object();
 
-	bool InRange(const Object& obj) const;
+	bool InRange(const Object& obj, double& len) const;
 
 	virtual void Attack(Object& obj);
 
@@ -39,4 +38,3 @@ public:
 	void AddStats(const Stats& add);
 
 };
-

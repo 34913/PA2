@@ -1,12 +1,24 @@
 #include "Object.h"
 
-bool Object::InRange(const Object& obj) const
+Object::Object(const Point& coords, const Stats& values, const TypeCode& type)
+	:coords(coords),
+	values(values),
+	type(type),
+	id(readyID.getLowest())
+{}
+
+Object::~Object()
 {
-	float temp[2] = { 0,0 };
+	readyID.Removed(id);
+}
+
+bool Object::InRange(const Object& obj, double& len) const
+{
+	double temp[2] = { 0,0 };
 	temp[0] = coords.x - obj.coords.x;
 	temp[1] = coords.y - obj.coords.y;
-
-	double len = 0;
+	
+	len = 0;
 	for (int i = 0; i < 2; i++)
 		len += pow(temp[i], 2);
 
