@@ -20,4 +20,6 @@ public:
 		health(s.health)
 	{}
 
+	void Add(const Stats& add);
+
 };

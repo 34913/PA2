@@ -35,3 +35,8 @@ const Point& Object::GetCoords() const
 {
 	return coords;
 }
+
+void Object::AddStats(const Stats& add)
+{
+	values.Add(add);
+}

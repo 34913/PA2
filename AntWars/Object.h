@@ -36,5 +36,7 @@ public:
 
 	const Point& GetCoords() const;
 
+	void AddStats(const Stats& add);
+
 };
 
