@@ -3,3 +3,10 @@
 tempfile
 build
 .vscode
+.vs
+*.sln
+*.vcxproj*
+/SDL2-2.0.22
+/SDL2
+/x64/Debug
+/AntWars/x64/Debug
