@@ -5,7 +5,8 @@ Object::Object(const Point& coords, const Stats& values, const TypeCode& type)
 	values(values),
 	type(type),
 	id(readyID.getLowest())
-{}
+{
+}
 
 Object::~Object()
 {
@@ -43,7 +44,7 @@ bool Object::IsAlive() const
 	return values.health > 0;
 }
 
-const Point& Object::GetCoords() const
+Point Object::GetCoords() const
 {
 	return coords;
 }

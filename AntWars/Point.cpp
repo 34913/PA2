@@ -12,6 +12,12 @@ void Point::operator = (const Point& p)
 	this->y = p.y;
 }
 
+std::ostream& operator<<(std::ostream& os, const Point& p)
+{
+	os << p.x << " " << p.y;
+	return os;
+}
+
 void Point::Right()
 {
 	x++;

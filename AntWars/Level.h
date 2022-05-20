@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Ant.h"
 #include "TankAnt.h"
 #include "RangedAnt.h"
 #include "MeleeAnt.h"

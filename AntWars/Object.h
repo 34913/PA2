@@ -33,7 +33,7 @@ public:
 
 	virtual bool IsAlive() const;
 
-	const Point& GetCoords() const;
+	Point GetCoords() const;
 
 	void AddStats(const Stats& add);
 

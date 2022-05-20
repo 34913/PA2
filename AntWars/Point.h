@@ -1,4 +1,7 @@
 #pragma once
+
+#include <ostream>
+
 class Point
 {
 public:
@@ -15,6 +18,8 @@ public:
 	bool operator == (const Point& p) const;
 
 	void operator = (const Point& p);
+
+	friend std::ostream& operator << (std::ostream& os, const Point& x);
 
 	void Right();
 
