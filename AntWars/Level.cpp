@@ -19,7 +19,7 @@ Level::Level(int startingExp, int Startinglevel)
 bool Level::AddExp(const Object* type)
 {
 	if(amount.find(type->type.code) == amount.end())
-		throw std::exception("not known type of object");
+		throw std::invalid_argument("not known type of object");
 	exp += amount[type->type.code];
 
 	if (exp > limit) {

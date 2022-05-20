@@ -13,8 +13,15 @@ Object::~Object()
 	readyID.Removed(id);
 }
 
-bool Object::InRange(const Object& obj, double& len) const
+bool Object::operator==(const Object& obj) const
 {
+	return id == obj.id;
+}
+
+bool Object::HasInRange(const Object& obj, double& len) const
+{
+	if (obj == *this)
+		return false;
 	double temp[2] = { 0,0 };
 	temp[0] = coords.x - obj.coords.x;
 	temp[1] = coords.y - obj.coords.y;
@@ -24,6 +31,7 @@ bool Object::InRange(const Object& obj, double& len) const
 		len += pow(temp[i], 2);
 
 	// count the length from one to another
+	// classic triangle
 	len = sqrt(len);
 
 	return len <= values.range;

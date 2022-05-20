@@ -17,9 +17,9 @@ const Point& Ant::Move(const Point& dir)
 		coords.Left();
 
 	if (dir.y > coords.y)
-		coords.Up();
-	else if (dir.y != coords.y)
 		coords.Down();
+	else if (dir.y != coords.y)
+		coords.Up();
 
 	return coords;
 }

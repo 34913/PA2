@@ -12,11 +12,7 @@ protected:
 
 public:
 
-	RangedAnt()
-		:Ant(Point(0, 0), Stats(2, 5, 10), rangedAntCode)
-	{}
-
-	RangedAnt(Point start)
+	RangedAnt(Point start = Point(0, 0))
 		:Ant(start, Stats(2, 5, 10), rangedAntCode)
 	{}
 };

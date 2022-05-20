@@ -25,7 +25,9 @@ public:
 	
 	~Object();
 
-	bool InRange(const Object& obj, double& len) const;
+	bool operator == (const Object& obj) const;
+
+	bool HasInRange(const Object& obj, double& len) const;
 
 	virtual void Attack(Object& obj);
 
