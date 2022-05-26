@@ -17,8 +17,6 @@ public:
 
 	bool operator == (const Point& p) const;
 
-	void operator = (const Point& p);
-
 	friend std::ostream& operator << (std::ostream& os, const Point& x);
 
 	void Right();
@@ -28,5 +26,9 @@ public:
 	void Down();
 
 	void Up();
+
+	double Length(Point& diff);
+
+	static double Length(Point& a, Point& b);
 
 };
