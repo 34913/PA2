@@ -11,8 +11,8 @@ class TankAnt : public Ant
 {
 public:
 
-	TankAnt(Point start = Point(0,0))
-		:Ant(start, Stats(1, 1, 25), tankAntCode)
-	{}
+	TankAnt(Point start = Point(0, 0));
+
+	bool Defend(Object& obj) override;
 
 };

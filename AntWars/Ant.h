@@ -10,6 +10,6 @@ public:
 
 	Ant(const Point& coords, const Stats& values, const TypeCode& type);
 
-	virtual const Point& Move(const Point& dir);
+	virtual Point& Move(const Point& dir);
 
 };

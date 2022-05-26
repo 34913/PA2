@@ -10,10 +10,13 @@ const TypeCode meleeAntCode = TypeCode(3);
 
 class MeleeAnt: public Ant
 {
+	int counter;
+	const int limit;
+
 public:
 
-	MeleeAnt(Point start = Point(0,0))
-		:Ant(start, Stats(3, 1, 15), meleeAntCode)
-	{}
+	MeleeAnt(Point start = Point(0, 0));
+
+	bool Attack(Object& obj) override;
 
 };
