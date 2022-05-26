@@ -4,11 +4,11 @@ class Stats
 {
 public:
 
-	int damage;
-	int range;
-	int health;
+	double damage;
+	double range;
+	double health;
 
-	Stats(int d, int r, int h)
+	Stats(double d, double r, double h)
 		:damage(d),
 		range(r),
 		health(h)

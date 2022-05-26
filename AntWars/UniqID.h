@@ -3,14 +3,13 @@
 #include <set>
 #include <cstdint>
 
+//#include "ID.h"
+
 template <typename T>
 class UniqID
 {
 	std::set<T> available;
-
-	T lowest;
-
-
+	
 public:
 
 	/**
@@ -40,7 +39,6 @@ extern UniqID<uint32_t> readyID;
 
 template<typename T>
 inline UniqID<T>::UniqID(T lowest)
-	:lowest(lowest)
 {
 	available.insert(lowest);
 }
@@ -48,20 +46,20 @@ inline UniqID<T>::UniqID(T lowest)
 template<typename T>
 inline T UniqID<T>::getLowest()
 {
-	T temp = lowest;
-	if (available.size() > 1) {
-		available.erase(lowest);
-		lowest = *available.begin();
+	T temp = *available.begin();
+
+	if (available.size() != 1) {
+		available.erase(available.begin());
 	}
-	else
-		available.insert(lowest++);
+	else {
+		available.erase(available.begin());
+		available.insert(temp + 1);
+	}
 	return temp;
 }
 
 template<typename T>
 inline void UniqID<T>::Removed(T id)
 {
-	if (id < lowest)
-		lowest = id;
 	available.insert(id);
 }
