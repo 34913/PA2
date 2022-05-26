@@ -65,7 +65,7 @@ void Object::AddStats(const Stats& add)
 
 void Object::Print(std::ostream& os) const
 {
-	os << id << " " << type << " : " << "[" << coords.x << "," << coords.y << "]";
+	os << id << " " << type << " " << coords << " " << values;
 }
 
 uint32_t Object::GetId() const

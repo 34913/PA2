@@ -1,4 +1,5 @@
 #pragma once
+#include <ostream>
 
 class Stats
 {
@@ -8,18 +9,17 @@ public:
 	double range;
 	double health;
 
-	Stats(double d, double r, double h)
-		:damage(d),
-		range(r),
-		health(h)
-	{}
+	Stats(double d, double r, double h);
 
-	Stats(const Stats& s)
-		:damage(s.damage),
-		range(s.range),
-		health(s.health)
-	{}
+	Stats(const Stats& s);
 
+	/**
+	 * adds certain amount of stats to this.
+	 * 
+	 * \param add to be added
+	 */
 	void Add(const Stats& add);
+	
+	friend std::ostream& operator << (std::ostream& os, const Stats& s);
 
 };
