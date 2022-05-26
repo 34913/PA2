@@ -5,8 +5,14 @@ Object::Object(const Point& coords, const Stats& values, const TypeCode& type)
 	values(values),
 	type(type),
 	id(readyID.getLowest())
-{
-}
+{}
+
+Object::Object(const Object& obj)
+	:coords(obj.coords),
+	values(obj.values),
+	type(obj.type),
+	id(readyID.getLowest())
+{}
 
 Object::~Object()
 {
@@ -18,33 +24,28 @@ bool Object::operator==(const Object& obj) const
 	return id == obj.id;
 }
 
-bool Object::HasInRange(const Object& obj, double& len) const
+std::ostream& operator<<(std::ostream& os, const Object& x)
 {
-	if (obj == *this)
-		return false;
-	double temp[2] = { 0,0 };
-	temp[0] = coords.x - obj.coords.x;
-	temp[1] = coords.y - obj.coords.y;
-	
-	len = 0;
-	for (int i = 0; i < 2; i++)
-		len += pow(temp[i], 2);
+	x.Print(os);
+	return os;
+}
 
-	// count the length from one to another
-	// classic triangle
-	len = sqrt(len);
+bool Object::HasInRange(Object& obj, double& len)
+{
+	len = coords.Length(obj.coords);
 
 	return len <= values.range;
 }
 
-void Object::Attack(Object& obj)
+bool Object::Attack(Object& obj)
 {
-	obj.Defend(values.damage);
+	return obj.Defend(*this);
 }
 
-void Object::Defend(const int dmg)
+bool Object::Defend(Object &obj)
 {
-	values.health -= dmg;
+	values.health -= obj.values.damage;
+	return true;
 }
 
 bool Object::IsAlive() const
@@ -52,7 +53,7 @@ bool Object::IsAlive() const
 	return values.health > 0;
 }
 
-Point Object::GetCoords() const
+Point& Object::GetCoords()
 {
 	return coords;
 }
@@ -60,4 +61,14 @@ Point Object::GetCoords() const
 void Object::AddStats(const Stats& add)
 {
 	values.Add(add);
+}
+
+void Object::Print(std::ostream& os) const
+{
+	os << id << " " << type << " : " << "[" << coords.x << "," << coords.y << "]";
+}
+
+uint32_t Object::GetId() const
+{
+	return id;
 }
