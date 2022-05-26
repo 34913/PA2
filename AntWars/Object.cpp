@@ -19,6 +19,17 @@ Object::~Object()
 	readyID.Removed(id);
 }
 
+Object& Object::operator=(const Object& obj)
+{
+	if (this == &obj)
+		return *this;
+
+	coords = Point(obj.coords);
+	values = Stats(obj.values);
+	
+	return *this;
+}
+
 bool Object::operator==(const Object& obj) const
 {
 	return id == obj.id;

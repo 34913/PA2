@@ -16,7 +16,7 @@ protected:
 
 	Stats values;
 
-	uint32_t id;
+	const uint32_t id;
 
 public:
 
@@ -33,6 +33,8 @@ public:
 	~Object();
 
 	// operators
+
+	Object& operator = (const Object& obj);
 
 	bool operator == (const Object& obj) const;
 
