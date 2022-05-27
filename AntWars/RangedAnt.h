@@ -4,7 +4,6 @@
 #include "Point.h"
 #include "Stats.h"
 
-const TypeCode rangedAntCode = TypeCode(2);
 
 class RangedAnt : public Ant
 {
@@ -12,6 +11,8 @@ class RangedAnt : public Ant
 	// can be set up in constructor
 	const double worst;
 public:
+
+	static TypeCode rangedAntCode;
 
 	RangedAnt(Point start = Point(0, 0));
 

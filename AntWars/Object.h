@@ -8,7 +8,7 @@
 #include <math.h>
 #include <ostream>
 
-class Object
+class Object abstract
 {
 protected:
 
@@ -42,6 +42,13 @@ public:
 
 	// methods
 
+	/**
+	 * Determines if given object is in range of this object.
+	 * 
+	 * \param obj object to determine whether or not is in this range
+	 * \param len to save length between them
+	 * \return true if given object is in range of this
+	 */
 	bool HasInRange(Object& obj, double& len);
 
 	/**
@@ -81,8 +88,18 @@ public:
 	 */
 	void AddStats(const Stats& add);
 
+	/**
+	 * printing in stream.
+	 * 
+	 * \param os stream to print in
+	 */
 	void virtual Print(std::ostream& os) const;
 
+	/**
+	 * returns uniq id for this object.
+	 * 
+	 * \return id
+	 */
 	uint32_t GetId() const;
 
 };

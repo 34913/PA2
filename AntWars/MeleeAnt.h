@@ -6,14 +6,16 @@
 
 #include "TypeCode.h"
 
-const TypeCode meleeAntCode = TypeCode(3);
 
 class MeleeAnt: public Ant
 {
 	int counter;
 	const int limit;
 
+
 public:
+	
+	static TypeCode meleeAntCode;
 
 	MeleeAnt(Point start = Point(0, 0));
 

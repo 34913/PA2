@@ -10,10 +10,10 @@ Level::Level(int startingExp, int Startinglevel)
 		exp -= limit;
 	}
 
-	amount.insert({ meleeAntCode.code, 10 });
-	amount.insert({ rangedAntCode.code, 15 });
-	amount.insert({ tankAntCode.code, 30 });
-	amount.insert({ baseType.code, 500 });
+	amount.insert({ MeleeAnt::meleeAntCode.code, 10 });
+	amount.insert({ RangedAnt::rangedAntCode.code, 15 });
+	amount.insert({ TankAnt::tankAntCode.code, 30 });
+	amount.insert({ Base::baseType.code, 500 });
 }
 
 bool Level::AddExp(const Object* type)

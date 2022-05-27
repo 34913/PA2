@@ -13,6 +13,8 @@ public:
 
 	bool operator == (const TypeCode& t) const;
 
+	bool operator != (const TypeCode& t) const;
+
 	friend std::ostream& operator << (std::ostream& os, const TypeCode& x);
 
 };

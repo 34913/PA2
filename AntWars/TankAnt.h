@@ -5,11 +5,11 @@
 #include "Stats.h"
 #include "TypeCode.h"
 
-const TypeCode tankAntCode = TypeCode(4);
-
 class TankAnt : public Ant
 {
 public:
+
+	static TypeCode tankAntCode;
 
 	TankAnt(Point start = Point(0, 0));
 
