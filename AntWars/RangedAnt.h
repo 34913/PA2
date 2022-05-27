@@ -4,13 +4,13 @@
 #include "Point.h"
 #include "Stats.h"
 
-
 const TypeCode rangedAntCode = TypeCode(2);
 
 class RangedAnt : public Ant
 {
-protected:
-
+	// worst accuracy (in %) you can get
+	// can be set up in constructor
+	const double worst;
 public:
 
 	RangedAnt(Point start = Point(0, 0));

@@ -1,21 +1,27 @@
 #include "RangedAnt.h"
 
 RangedAnt::RangedAnt(Point start)
-	:Ant(start, Stats(2.0, 10.0, 10.0), rangedAntCode)
+	:Ant(start, Stats(2.0, 10.0, 10.0), rangedAntCode),
+	worst(31.24)
 {}
 
 bool RangedAnt::Attack(Object& obj)
 {
 	double len = coords.Length(obj.GetCoords());
-
 	double half = values.range / 2;
-	if (len > values.range / 2) {
 
-		double percentil = 50 + ((values.range - half) / 50) * (len - half);
-		
-		srand((unsigned int)time(NULL));
-		if (((double)(rand() % 1000) / 10) > percentil)
+	if (len > half) {
+		double percentil = 100 + (worst / (values.range - half)) * (half - len);
+
+		srand((unsigned int)time(NULL) + rand());
+		double chance = (rand() % 100) + ((double)(rand() % 101) / 100);
+		printf("%.2f %.2f ", percentil, chance);
+
+		if (percentil < chance) {
+			printf("\n\n");
 			return false;
+		}
+		printf("hit\n\n");
 	}
 
 	Object::Attack(obj);
