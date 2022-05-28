@@ -1,9 +1,21 @@
-
 #include "Point.h"
+
+Point::Point(int x, int y)
+	:x(x), y(y)
+{}
+
+Point::Point(const Point& a)
+	:x(a.x), y(a.y)
+{}
 
 bool Point::operator==(const Point& p) const
 {
 	return p.x == x && p.y == y;
+}
+
+bool Point::operator!=(const Point& p) const
+{
+	return !(*this == p);
 }
 
 std::ostream& operator<<(std::ostream& os, const Point& p)
@@ -39,7 +51,7 @@ double Point::Length(Point& diff)
 
 double Point::Length(Point& a, Point& b)
 {
-	double temp[2] = { 0,0 };
+	int temp[2] = { 0,0 };
 	temp[0] = a.x - b.x;
 	temp[1] = a.y - b.y;
 
