@@ -29,5 +29,7 @@ public:
 
 	int GetAmount(Object& obj);
 
+	int GetAmount(TypeCode& type);
+
 };
 

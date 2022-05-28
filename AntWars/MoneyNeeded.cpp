@@ -24,3 +24,8 @@ int MoneyNeeded::GetAmount(Object& obj)
 {
 	return amount[obj.type.code];
 }
+
+int MoneyNeeded::GetAmount(TypeCode& type)
+{
+	return amount[type.code];
+}
