@@ -10,14 +10,16 @@
 
 #include "Point.h"
 
-//#include <vector>
+#include "Money.h"
+#include "MoneyNeeded.h"
+
+#include "Command.h"
+
 #include <string>
 
 #include <unordered_map>
 #include <map>
 #include <memory>
-
-#include "Point.h"
 
 #include <cstdint>
 #include <iostream>
@@ -26,26 +28,41 @@ class Player
 {
 protected:
 
+	// selected base uniq id
+	// used for training the troops to one selected base based on this uniq id
+	uint32_t selectedBase;
+	
+	// saving all the bases of this player
+	std::unordered_map<uint32_t, std::shared_ptr<Object>> bases;
+
 	// saving all the objects of this particular player
 	std::unordered_map<uint32_t, std::shared_ptr<Object>> stuff;
-
-	// maybe these two rework from multimap to map with vector inside to choose from
-	// multiple closest opponents
-	// now it is discarding multiple results with same double length, so remains just one
-	// and there is no chance to choose afterwards
 
 	// saving the in range objects
 	std::unordered_map<uint32_t, std::map<double, std::shared_ptr<Object>>> range;
 	// saving the closest array of object to certain id of object
 	std::unordered_map<uint32_t, std::map<double, std::shared_ptr<Object>>> closest;
 	
+	// all the progressing info
+	// level, money, troops costs and training time
+
 	Level points;
+
+	Money golds;
+
+	MoneyNeeded costs;
+
+	// todo
+	// training time class
+	//	-> derived of MoneyNeeded
 
 public:
 
 	// cons/destructor
 
 	Player();
+
+	Player(const Level& points, const Money& rewards);
 
 	~Player();
 
@@ -64,11 +81,19 @@ public:
 
 	/**
 	 * Commands from players here.
-	 * training ants, building bases
+	 * training ants, building bases etc.
 	 * 
-	 * \param cmd command to be executed
+	 * \param cmd string command to be executed
 	 */
-	virtual void Command(const std::string& cmd);
+	virtual void Input(const std::string& cmd);
+
+	/**
+	 * Commands from players here.
+	 * training ants, building bases etc.
+	 *
+	 * \param cmd command of type Command to be executed
+	 */
+	virtual void Input(Command& cmd);
 
 	/**
 	 * Add object to this player.
@@ -94,5 +119,35 @@ public:
 	 * 
 	 */
 	void CheckDead();
+
+	// getters
+
+	/**
+	 * Golds getter.
+	 * 
+	 * \return golds of object Money
+	 */
+	Money& GetGolds();
+	
+	/**
+	 * Level getter.
+	 * 
+	 * \return points of object Level
+	 */
+	Level& GetLevel();
+
+	/**
+	 * Costs getter.
+	 * 
+	 * \return costs of object MoneyNeeded
+	 */
+	MoneyNeeded& GetCosts();
+
+	/**
+	 * Selected base getter.
+	 * 
+	 * \return reference to selected base
+	 */
+	Base& GetSelected();
 
 };
