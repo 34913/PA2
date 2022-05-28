@@ -1,22 +1,19 @@
 #pragma once
 
-#include "TankAnt.h"
-#include "RangedAnt.h"
-#include "MeleeAnt.h"
-#include "Base.h"
+#include "MoneyNeeded.h"
 
 #include <map>
 
-class Level
+class Level : public MoneyNeeded
 {
-private:
-
-	std::map<int, int> amount;
 
 	int exp;
-	uint16_t level;
+	int level;
+	int lastLevel;
 
 	const int limit;
+
+	void Add() override;
 
 public:
 
@@ -28,14 +25,13 @@ public:
 	 */
 	Level(int startingExp = 0, int level = 1);
 
-
 	/**
 	 * add expierence.
 	 * 
-	 * \param type of killed object, determines the amount of points
+	 * \param obj of killed object, determines the amount of points
 	 * \return true if level up is present
 	 */
-	bool AddExp(const Object* type);
+	bool AddExp(Object& obj);
 
 	/**
 	 * returns level.
@@ -44,5 +40,11 @@ public:
 	 */
 	int GetLevel();
 
-};
+	/**
+	 * Checks the change of level.
+	 * 
+	 * \return the amount of changes of level
+	 */
+	int CheckLevel();
 
+};
