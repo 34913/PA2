@@ -4,7 +4,8 @@ TypeCode MeleeAnt::meleeAntCode(3);
 
 MeleeAnt::MeleeAnt(Point start)
 	:Ant(start, Stats(3.0, 1.5, 15.0), meleeAntCode),
-	limit(2)
+	limit(2),
+	counter(0)
 {}
 
 bool MeleeAnt::Attack(Object& obj)

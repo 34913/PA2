@@ -12,7 +12,6 @@ class MeleeAnt: public Ant
 	int counter;
 	const int limit;
 
-
 public:
 	
 	static TypeCode meleeAntCode;

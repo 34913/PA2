@@ -17,13 +17,9 @@ bool RangedAnt::Attack(Object& obj)
 
 		srand((unsigned int)time(NULL) + rand());
 		double chance = (rand() % 100) + ((double)(rand() % 101) / 100);
-		printf("%.2f %.2f ", percentil, chance);
 
-		if (percentil < chance) {
-			printf("\n\n");
+		if (percentil < chance)
 			return false;
-		}
-		printf("hit\n\n");
 	}
 
 	Object::Attack(obj);

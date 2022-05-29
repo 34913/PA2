@@ -4,7 +4,6 @@
 #include "Point.h"
 #include "Stats.h"
 
-
 class RangedAnt : public Ant
 {
 	// worst accuracy (in %) you can get
