@@ -9,11 +9,13 @@
 
 #include <map>
 
+#include <cstdint>
+
 class MoneyNeeded
 {
 protected:
 	
-	std::map<int, int> amount;
+	std::map<int, uint16_t> amount;
 
 	/**
 	 * Adds on start basic objects and their price/cost (depends on class using)
@@ -27,9 +29,9 @@ public:
 
 	virtual void Up();
 
-	int GetAmount(Object& obj);
-
-	int GetAmount(TypeCode& type);
+	uint16_t operator [](Object& obj);
+	
+	uint16_t operator[](TypeCode& type);
 
 };
 

@@ -20,12 +20,12 @@ void MoneyNeeded::Up()
 	}
 }
 
-int MoneyNeeded::GetAmount(Object& obj)
+uint16_t MoneyNeeded::operator[](Object& obj) 
 {
 	return amount[obj.type.code];
 }
 
-int MoneyNeeded::GetAmount(TypeCode& type)
+uint16_t MoneyNeeded::operator[](TypeCode& type)
 {
 	return amount[type.code];
 }
