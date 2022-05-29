@@ -1,12 +1,14 @@
 #include "Player.h"
 
 Player::Player()
-	:golds(0)
+	:golds(0),
+	selectedBase(-1)
 {}
 
 Player::Player(const Level& points, const Money& rewards)
 	:points(points),
-	golds(golds)
+	golds(golds),
+	selectedBase(-1)
 {}
 
 Player::~Player()
@@ -14,6 +16,7 @@ Player::~Player()
 	stuff.clear();
 	range.clear();
 	closest.clear();
+	bases.clear();
 }
 
 std::ostream& operator<<(std::ostream& os, const Player& x)
@@ -48,31 +51,59 @@ void Player::Input(const std::string& cmd)
 
 void Player::Input(Command& cmd)
 {
-	if (cmd == Command::nextBase) {
-
+	if (cmd == Command::nextBase || cmd == Command::backBase) {
+		auto it = bases.find(selectedBase);
+		if (it == bases.end()) {
+			it = bases.begin();
+			return;
+		}
+		if (cmd == Command::nextBase)
+			it++;
+		else
+			it--;
+		selectedBase = it->second->GetId();
 	}
-	else if (cmd == Command::backBase) {
+	else if (cmd == Command::trainMelee
+		|| cmd == Command::trainRange
+		|| cmd == Command::trainTank)
+	{
+		if (bases.find(selectedBase) == bases.end())
+			throw std::invalid_argument("Not selected base where to train");
+		if (train[selectedBase].size() == 5)
+			throw std::invalid_argument("Training queue is full");
 
-	}
-	else if (cmd == Command::trainMelee) {
+		if (train[selectedBase].empty())
+			ticking[selectedBase] = std::chrono::steady_clock::now();
 
-	}
-	else if (cmd == Command::trainRange) {
-
-	}
-	else if (cmd == Command::trainTank) {
+		if (cmd == Command::trainMelee
+			&& golds.GetMoney() >= costs[MeleeAnt::meleeAntCode])
+		{
+			train[selectedBase].push(std::make_shared<MeleeAnt>(MeleeAnt(Point(bases[selectedBase]->GetCoords()))));
+		}
+		else if (cmd == Command::trainRange
+			&& golds.GetMoney() >= costs[RangedAnt::rangedAntCode])
+		{
+			train[selectedBase].push(std::make_shared<RangedAnt>(RangedAnt(Point(bases[selectedBase]->GetCoords()))));
+		}
+		else if (cmd == Command::trainTank
+			&& golds.GetMoney() >= costs[TankAnt::tankAntCode])
+		{
+			train[selectedBase].push(std::make_shared<TankAnt>(TankAnt(Point(bases[selectedBase]->GetCoords()))));
+		}
 
 	}
 	else {
-		throw std::invalid_argument("Not known command");
+		throw std::invalid_argument("Unknown command");
 	}
 }
 
 void Player::Add(std::shared_ptr<Object> obj)
 {
 	stuff[obj->GetId()] = obj;
-	if (obj->type == Base::baseType)
+	if (obj->type == Base::baseType) {
 		bases[obj->GetId()] = obj;
+		train[obj->GetId()] = {};
+	}
 }
 
 void Player::PrintOut()
@@ -162,8 +193,17 @@ void Player::CheckDead()
 	closest.clear();
 
 	for (auto& x : stuff) {
-		if (!x.second->IsAlive())
-			stuff.erase(x.first);
+		if (x.second->IsAlive())
+			continue;
+		stuff.erase(x.first);
+
+		if (x.second->type == Base::baseType) {
+			bases.erase(x.first);
+			selectedBase = -1;
+			
+			ticking.erase(x.first);
+			train.erase(x.first);
+		}
 	}
 
 	int temp = points.CheckLevel();
@@ -171,8 +211,33 @@ void Player::CheckDead()
 		golds.Up();
 		costs.Up();
 		points.Up();
+
+		// todo
+		// need to raise the stats of objects
 	}
 
+}
+
+void Player::CheckTrain()
+{
+	auto end = std::chrono::steady_clock::now();
+	std::chrono::duration<double> diff;
+
+	for (auto& x : train) {
+		if (train[x.first].empty())
+			continue;
+
+		diff = end - ticking[x.first];
+
+		std::shared_ptr<Object> temp = train[x.first].front();
+
+		if (diff.count() < (double)times[*temp] / 1000)
+			continue;
+
+		Add(temp);
+		train[x.first].pop();
+		ticking[x.first] = end;
+	}
 }
 
 Money& Player::GetGolds()
@@ -192,5 +257,24 @@ MoneyNeeded& Player::GetCosts()
 
 Base& Player::GetSelected()
 {
+	if(bases.find(selectedBase) == bases.end())
+		throw std::invalid_argument("Not selected base");
+
 	return (Base&)(*bases[selectedBase]);
+}
+
+std::queue<std::shared_ptr<Object>>& Player::GetTrain()
+{
+	if (bases.find(selectedBase) == bases.end())
+		throw std::invalid_argument("Not selected base");
+
+	return train[selectedBase];
+}
+
+std::chrono::steady_clock::time_point& Player::GetTicking()
+{
+	if (bases.find(selectedBase) == bases.end())
+		throw std::invalid_argument("Not selected base");
+
+	return ticking[selectedBase];
 }

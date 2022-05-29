@@ -1,17 +1,17 @@
 #pragma once
 
 #include "Base.h"
-#include "Ant.h"
 #include "Object.h"
 #include "MeleeAnt.h"
 #include "RangedAnt.h"
 #include "TankAnt.h"
-#include "Level.h"
 
 #include "Point.h"
 
-#include "Money.h"
 #include "MoneyNeeded.h"
+#include "Level.h"
+#include "Money.h"
+#include "TrainingTime.h"
 
 #include "Command.h"
 
@@ -23,6 +23,9 @@
 
 #include <cstdint>
 #include <iostream>
+#include <queue>
+
+#include <chrono>
 
 class Player
 {
@@ -33,7 +36,7 @@ protected:
 	uint32_t selectedBase;
 	
 	// saving all the bases of this player
-	std::unordered_map<uint32_t, std::shared_ptr<Object>> bases;
+	std::map<uint32_t, std::shared_ptr<Object>> bases;
 
 	// saving all the objects of this particular player
 	std::unordered_map<uint32_t, std::shared_ptr<Object>> stuff;
@@ -52,9 +55,15 @@ protected:
 
 	MoneyNeeded costs;
 
+	TrainingTime times;
+
 	// todo
 	// training time class
 	//	-> derived of MoneyNeeded
+	// + training queue
+
+	std::unordered_map<uint32_t, std::queue<std::shared_ptr<Object>>> train;
+	std::unordered_map<uint32_t, std::chrono::steady_clock::time_point> ticking;
 
 public:
 
@@ -120,6 +129,12 @@ public:
 	 */
 	void CheckDead();
 
+	/**
+	 * Checks if some troop is already trained, then added in stuff.
+	 * 
+	 */
+	void CheckTrain();
+
 	// getters
 
 	/**
@@ -149,5 +164,9 @@ public:
 	 * \return reference to selected base
 	 */
 	Base& GetSelected();
+
+	std::queue<std::shared_ptr<Object>>& GetTrain();
+
+	std::chrono::steady_clock::time_point& GetTicking();
 
 };
