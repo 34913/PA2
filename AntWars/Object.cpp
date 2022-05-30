@@ -1,4 +1,4 @@
-#include "Object.h"
+ #include "Object.h"
 
 Object::Object(const Point& coords, const Stats& values, const TypeCode& type)
 	:coords(coords),
@@ -33,6 +33,12 @@ Object& Object::operator=(const Object& obj)
 bool Object::operator==(const Object& obj) const
 {
 	return id == obj.id;
+}
+
+void Object::Set(const Point& coords, double health)
+{
+	this->coords = Point(coords);
+	values.health = health;
 }
 
 std::ostream& operator<<(std::ostream& os, const Object& x)
@@ -76,7 +82,7 @@ void Object::AddStats(const Stats& add)
 
 void Object::Print(std::ostream& os) const
 {
-	os << id << " " << type << " " << coords << " " << values;
+	os << type << " " << coords << " " << values.health;
 }
 
 uint32_t Object::GetId() const

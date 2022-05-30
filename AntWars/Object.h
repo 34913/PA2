@@ -27,7 +27,7 @@ public:
 	// construct + destruct
 
 	Object(const Point& coords, const Stats& values, const TypeCode& type);
-	
+
 	Object(const Object& obj);
 
 	~Object();
@@ -41,6 +41,8 @@ public:
 	friend std::ostream& operator << (std::ostream& os, const Object& x);
 
 	// methods
+
+	void Set(const Point& coords, double health);
 
 	/**
 	 * Determines if given object is in range of this object.

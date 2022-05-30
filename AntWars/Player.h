@@ -19,17 +19,20 @@
 
 #include <unordered_map>
 #include <map>
+#include <list>
 #include <memory>
 
 #include <cstdint>
 #include <iostream>
-#include <queue>
-
 #include <chrono>
+
+#include <fstream>
 
 class Player
 {
 protected:
+
+	std::string name;
 
 	// selected base uniq id
 	// used for training the troops to one selected base based on this uniq id
@@ -57,27 +60,24 @@ protected:
 
 	TrainingTime times;
 
-	// todo
-	// training time class
-	//	-> derived of MoneyNeeded
-	// + training queue
-
-	std::unordered_map<uint32_t, std::queue<std::shared_ptr<Object>>> train;
+	std::unordered_map<uint32_t, std::list<std::shared_ptr<Object>>> train;
 	std::unordered_map<uint32_t, std::chrono::steady_clock::time_point> ticking;
 
 public:
 
 	// cons/destructor
 
-	Player();
-
-	Player(const Level& points, const Money& rewards);
+	Player(const std::string& name = "Player");
+	
+	Player(const Level& points, const Money& rewards, const std::string& name = "Player");
 
 	~Player();
 
 	// operators
 
-	friend std::ostream& operator << (std::ostream& os, const Player& x);
+	friend std::ostream& operator << (std::ostream& os, Player& obj);
+
+	friend std::istream& operator >> (std::istream& is, Player& obj);
 
 	// methods
 
@@ -87,14 +87,6 @@ public:
 	 * \param enemy player
 	 */
 	void FindEnemy(Player& enemy);
-
-	/**
-	 * Commands from players here.
-	 * training ants, building bases etc.
-	 * 
-	 * \param cmd string command to be executed
-	 */
-	virtual void Input(const std::string& cmd);
 
 	/**
 	 * Commands from players here.
@@ -165,8 +157,18 @@ public:
 	 */
 	Base& GetSelected();
 
-	std::queue<std::shared_ptr<Object>>& GetTrain();
+	/**
+	 * Seleected base training list getter.
+	 *
+	 * \return reference to this list
+	 */
+	std::list<std::shared_ptr<Object>>& GetTrain();
 
+	/**
+	 * Ticking time of selected base getter
+	 *
+	 * \return reference to this time point
+	 */
 	std::chrono::steady_clock::time_point& GetTicking();
 
 };

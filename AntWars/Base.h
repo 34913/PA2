@@ -13,6 +13,6 @@ public:
 
 	static TypeCode baseType;
 
-	Base(const Point& coords);
+	Base(const Point& coords = Point(0,0));
 
 };
