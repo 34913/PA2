@@ -1,6 +1,10 @@
 #include "AutoPlayer.h"
 
-void AutoPlayer::Command()
+AutoPlayer::AutoPlayer(const std::string& name)
+	:Player(name)
+{}
+
+void AutoPlayer::Input()
 {
 
 

@@ -78,11 +78,14 @@ std::istream& operator>>(std::istream& is, Player& obj)
 		if (temp->type != Base::baseType)
 			continue;
 
+		// if base
+		// read all the training ants in queue
 		is.get();
 		ch = is.get();
 		if (ch == '-')
 			continue;
 
+		obj.ticking[temp->GetId()] = std::chrono::steady_clock::now();
 		while (is.good()) {
 			ch = is.get();
 
@@ -116,8 +119,11 @@ void Player::FindEnemy(Player& enemy)
 	for (auto& x : stuff) {
 		for (auto& enemyX : enemy.stuff) {
 
+			// basicly first try if the target is in range
+			// and add him in std::set in range based on the length from it
 			if (x.second->HasInRange(*enemyX.second, len))
 				range[x.first][len] = enemyX.second;
+			// if not, add him (again based on length) in std::set in closest
 			else if(x.second->type != Base::baseType)
 				closest[x.first][len] = enemyX.second;
 
@@ -127,6 +133,7 @@ void Player::FindEnemy(Player& enemy)
 
 void Player::Input(Command& cmd)
 {
+	// shifting the selected base
 	if (cmd == Command::nextBase || cmd == Command::backBase) {
 		auto it = bases.find(selectedBase);
 		if (it == bases.end()) {
@@ -140,38 +147,44 @@ void Player::Input(Command& cmd)
 			it--;
 		selectedBase = it->second->GetId();
 	}
+	// training troops in selected base
 	else if (cmd == Command::trainMelee
 		|| cmd == Command::trainRange
 		|| cmd == Command::trainTank)
 	{
+		// exceptions if not selected base
 		if (bases.find(selectedBase) == bases.end())
 			throw std::invalid_argument("Not selected base where to train");
+		// full queue (just named like that, its list but i thought training queue
+		// list easier to implement
 		if (train[selectedBase].size() == 5)
 			throw std::invalid_argument("Training queue is full");
 
+		// setting the start of trainíng time if empty
+		//	-> need to start it first
 		if (train[selectedBase].empty())
 			ticking[selectedBase] = std::chrono::steady_clock::now();
 
-		if (cmd == Command::trainMelee
-			&& golds.GetMoney() >= costs[MeleeAnt::meleeAntCode])
+		// choosing the right to train
+		std::shared_ptr<Object> temp;
+		if (cmd == Command::trainMelee && golds.GetMoney() >= costs[MeleeAnt::meleeAntCode])
 		{
-			train[selectedBase].push_back(std::make_shared<MeleeAnt>(MeleeAnt(Point(bases[selectedBase]->GetCoords()))));
+			temp = std::make_shared<MeleeAnt>(MeleeAnt(Point(bases[selectedBase]->GetCoords())));
 		}
-		else if (cmd == Command::trainRange
-			&& golds.GetMoney() >= costs[RangedAnt::rangedAntCode])
+		else if (cmd == Command::trainRange && golds.GetMoney() >= costs[RangedAnt::rangedAntCode])
 		{
-			train[selectedBase].push_back(std::make_shared<RangedAnt>(RangedAnt(Point(bases[selectedBase]->GetCoords()))));
+			temp = std::make_shared<RangedAnt>(RangedAnt(Point(bases[selectedBase]->GetCoords())));
 		}
-		else if (cmd == Command::trainTank
-			&& golds.GetMoney() >= costs[TankAnt::tankAntCode])
+		else if(golds.GetMoney() >= costs[TankAnt::tankAntCode])
 		{
-			train[selectedBase].push_back(std::make_shared<TankAnt>(TankAnt(Point(bases[selectedBase]->GetCoords()))));
+			temp = std::make_shared<TankAnt>(TankAnt(Point(bases[selectedBase]->GetCoords())));
 		}
+		train[selectedBase].push_back(temp);
 
 	}
-	else {
+	// unknown command
+	else
 		throw std::invalid_argument("Unknown command");
-	}
 }
 
 void Player::Add(std::shared_ptr<Object> obj)
@@ -272,7 +285,7 @@ void Player::CheckDead()
 	auto it = stuff.begin();
 	while(it != stuff.end()) {
 
-		auto ptr = it->second;
+		auto& ptr = it->second;
 		it++;
 
 		if (ptr->IsAlive())

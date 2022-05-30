@@ -7,6 +7,8 @@ class AutoPlayer: public Player
 
 public:
 	
-	void Command();
+	AutoPlayer(const std::string& name = "Automat");
+
+	void Input();
 
 };
