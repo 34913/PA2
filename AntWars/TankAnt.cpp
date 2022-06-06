@@ -1,9 +1,9 @@
 #include "TankAnt.h"
 
-TypeCode TankAnt::tankAntCode(4);
+TypeCode TankAnt::type(4);
 
 TankAnt::TankAnt(Point start)
-	:Ant(start, Stats(1.0, 1.5, 25.0), tankAntCode)
+	:Ant(start, Stats(1.0, 1.5, 25.0), type)
 {}
 
 bool TankAnt::Defend(Object& obj)

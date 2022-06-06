@@ -4,11 +4,10 @@
 
 class TrainingTime : public MoneyNeeded
 {
-	
-	void Add() override;
-
 public:
 
 	TrainingTime();
+
+	void begin() override;
 
 };

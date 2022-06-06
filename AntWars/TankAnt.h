@@ -9,7 +9,7 @@ class TankAnt : public Ant
 {
 public:
 
-	static TypeCode tankAntCode;
+	static TypeCode type;
 
 	TankAnt(Point start = Point(0, 0));
 

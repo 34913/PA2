@@ -1,9 +1,9 @@
 #include "MeleeAnt.h"
 
-TypeCode MeleeAnt::meleeAntCode(3);
+TypeCode MeleeAnt::type(3);
 
 MeleeAnt::MeleeAnt(Point start)
-	:Ant(start, Stats(3.0, 1.5, 15.0), meleeAntCode),
+	:Ant(start, Stats(3.0, 1.5, 15.0), MeleeAnt::type),
 	limit(2),
 	counter(0)
 {}

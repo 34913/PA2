@@ -1,12 +1,12 @@
 #include "TrainingTime.h"
 
-void TrainingTime::Add()
-{
-	amount.insert({ MeleeAnt::meleeAntCode.code, 1000 });
-	amount.insert({ RangedAnt::rangedAntCode.code, 1000 });
-	amount.insert({ TankAnt::tankAntCode.code, 1000 });
-}
-
 TrainingTime::TrainingTime()
-	:MoneyNeeded()
 {}
+
+void TrainingTime::begin()
+{
+	amount.clear();
+	amount.insert({ MeleeAnt::type.code, 1000 });
+	amount.insert({ RangedAnt::type.code, 1000 });
+	amount.insert({ TankAnt::type.code, 1000 });
+}

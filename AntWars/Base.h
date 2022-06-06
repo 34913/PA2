@@ -6,12 +6,11 @@
 
 #include "TypeCode.h"
 
-
 class Base : public Object
 {
 public:
 
-	static TypeCode baseType;
+	static TypeCode type;
 
 	Base(const Point& coords = Point(0,0));
 

@@ -6,14 +6,16 @@
 
 class Level : public MoneyNeeded
 {
-
 	int exp;
 	int level;
 	int lastLevel;
 
+	// max exp on this level
 	const int limit;
 
-	void Add() override;
+	void Print(std::ostream& os) override;
+
+	void Scan(std::istream& is) override;
 
 public:
 
@@ -46,5 +48,11 @@ public:
 	 * \return the amount of changes of level
 	 */
 	int CheckLevel();
+
+	/**
+	 * Adds all the assets in set, need to be called first after init.
+	 * 
+	 */
+	void begin() override;
 
 };

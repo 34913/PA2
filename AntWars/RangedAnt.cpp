@@ -1,9 +1,9 @@
 #include "RangedAnt.h"
 
-TypeCode RangedAnt::rangedAntCode(2);
+TypeCode RangedAnt::type(2);
 
 RangedAnt::RangedAnt(Point start)
-	:Ant(start, Stats(2.0, 10.0, 10.0), rangedAntCode),
+	:Ant(start, Stats(2.0, 10.0, 10.0), RangedAnt::type),
 	worst(31.24)
 {}
 
