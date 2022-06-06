@@ -4,7 +4,7 @@ class Command
 {
 public:
 
-	const int code;
+	// basic commands
 
 	static Command nextBase;
 	static Command backBase;
@@ -13,8 +13,11 @@ public:
 	static Command trainTank;
 	static Command pause;
 
+	const int code;
+
 	Command(int code);
 
+	// operators
 	bool operator == (const Command& com) const;
 
 	bool operator != (const Command& com) const;

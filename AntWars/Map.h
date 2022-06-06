@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include <ostream>
 #include <fstream>
 
 class Map
@@ -20,9 +19,7 @@ public:
 
 	Map();
 
-
 	// operators
-
 
 	friend std::ostream& operator << (std::ostream& os, Map& obj);
 
@@ -55,6 +52,6 @@ public:
 	 * 
 	 * \return map with its contents
 	 */
-	std::vector<std::vector<char>> GetArr() const;
+	const std::vector<std::vector<char>>& GetArr() const;
 
 };

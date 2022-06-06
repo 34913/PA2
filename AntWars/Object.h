@@ -12,8 +12,10 @@ class Object abstract
 {
 protected:
 
+	// position
 	Point coords;
 
+	// stats of this unit
 	Stats values;
 
 	const uint32_t id;
@@ -42,6 +44,12 @@ public:
 
 	// methods
 
+	/**
+	 * Set the initial values upon creating.
+	 * 
+	 * \param coords 
+	 * \param health
+	 */
 	void Set(const Point& coords, double health);
 
 	/**

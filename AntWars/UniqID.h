@@ -3,8 +3,6 @@
 #include <set>
 #include <cstdint>
 
-//#include "ID.h"
-
 template <typename T>
 class UniqID
 {
@@ -18,6 +16,14 @@ public:
 	 * \param lowest - sets
 	 */
 	UniqID(T lowest = 0);
+
+	/**
+	 * clears set.
+	 * 
+	 */
+	~UniqID();
+
+	// methods
 
 	/**
 	 * gets uniq identifier, lowest as it can be.
@@ -41,6 +47,12 @@ template<typename T>
 inline UniqID<T>::UniqID(T lowest)
 {
 	available.insert(lowest);
+}
+
+template<typename T>
+inline UniqID<T>::~UniqID()
+{
+	available.clear();
 }
 
 template<typename T>

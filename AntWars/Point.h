@@ -1,6 +1,6 @@
 #pragma once
 
-#include <ostream>
+#include <fstream>
 
 class Point
 {

@@ -4,7 +4,6 @@
 
 class AutoPlayer: public Player
 {
-
 public:
 	
 	AutoPlayer(const std::string& name = "Automat");

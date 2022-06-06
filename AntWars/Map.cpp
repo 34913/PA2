@@ -63,7 +63,7 @@ size_t Map::GetWidth() const
 	return arr[0].size();
 }
 
-std::vector<std::vector<char>> Map::GetArr() const
+const std::vector<std::vector<char>>& Map::GetArr() const
 {
 	return arr;
 }
