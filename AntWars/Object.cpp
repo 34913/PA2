@@ -75,6 +75,11 @@ Point& Object::GetCoords()
 	return coords;
 }
 
+Point Object::GetCoords(int multiplier)
+{
+	return Point(coords.x * multiplier, coords.y * multiplier);
+}
+
 void Object::AddStats(const Stats& add)
 {
 	values.Add(add);

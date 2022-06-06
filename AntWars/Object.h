@@ -85,11 +85,19 @@ public:
 	virtual bool IsAlive() const;
 
 	/**
-	 * get coordinates of class Point.
-	 * 
+	 * Get coordinates of class Point.
+	 *
 	 * \return coords reference
 	 */
 	Point& GetCoords();
+
+	/**
+	 * Get coordinates of class Point.
+	 * 
+	 * \param multiplier to multiply the given coordinates
+	 * \return coords reference
+	 */
+	Point GetCoords(int multiplier);
 
 	/**
 	 * Adds statistics.
