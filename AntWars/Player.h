@@ -63,6 +63,8 @@ protected:
 	std::unordered_map<uint32_t, std::list<std::shared_ptr<Object>>> train;
 	std::unordered_map<uint32_t, std::chrono::steady_clock::time_point> ticking;
 
+	std::shared_ptr<Object> Create(int type);
+
 public:
 
 	// cons/destructor

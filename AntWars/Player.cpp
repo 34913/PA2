@@ -1,10 +1,32 @@
 #include "Player.h"
 
+std::shared_ptr<Object> Player::Create(int type)
+{
+	std::shared_ptr<Object> temp;
+	if (type == MeleeAnt::type.code)
+		temp = std::make_shared<MeleeAnt>(MeleeAnt());
+	else if (type == RangedAnt::type.code)
+		temp = std::make_shared<RangedAnt>(RangedAnt());
+	else if (type == TankAnt::type.code)
+		temp = std::make_shared<TankAnt>(TankAnt());
+	else if (type == Base::type.code)
+		temp = std::make_shared<Base>(Base());
+	else
+		throw std::invalid_argument("Wrong type of obj");
+
+	return temp;
+}
+
 Player::Player(const std::string& name)
 	:golds(0),
 	selectedBase(-1),
 	name(name)
-{}
+{
+	points.begin();
+	golds.begin();
+	costs.begin();
+	times.begin();
+}
 
 Player::Player(const Level& points, const Money& rewards, const std::string& name)
 	:points(points),
@@ -19,20 +41,26 @@ Player::~Player()
 std::ostream& operator<<(std::ostream& os, Player& obj)
 {
 	os << obj.name << std::endl;
-	for (auto& x : obj.stuff) {
-		os << ":" << *x.second << std::endl;
 
-		if (x.second->type != Base::baseType)
+	os << obj.points << std::endl;
+	os << obj.golds << std::endl;
+	os << obj.costs << std::endl;
+	os << obj.times << std::endl;
+
+	os << obj.stuff.size() << std::endl;
+	for (auto& x : obj.stuff) {
+		os << *x.second << std::endl;
+
+		if (x.second->type != Base::type)
 			continue;
 		if (obj.train[x.first].empty()) {
 			os << "-" << std::endl << std::endl;
 			continue;
 		}
-		os << '+' << std::endl;
 
+		os << '+' << obj.train[x.first].size() << std::endl;
 		for (auto& y : obj.train[x.first])
-			os << ":" << *y << std::endl;
-		os << std::endl;
+			os << *y << std::endl;
 	}
 
 	return os;
@@ -49,33 +77,29 @@ std::istream& operator>>(std::istream& is, Player& obj)
 	if (!(is >> obj.name))
 		throw std::invalid_argument("Cant read name");
 
-	while (is.good()) {
+	try {
+		is >> obj.points;
+		is >> obj.golds;
+		is >> obj.costs;
+		is >> obj.times;
+	}
+	catch (const std::invalid_argument& e) {
+		throw e;
+	}
+	int count, trainCount;
+	is >> count;
 
-		is.get();
-		ch = is.get();
-		if (ch != ':')
-			break;
+	for(int i = 0; i < count; i++) {
 
 		if (!(is >> t >> x >> y >> h))
 			throw std::invalid_argument("Cant read data, corrupted");
 
-		std::shared_ptr<Object> temp;
-		if (t == MeleeAnt::meleeAntCode.code)
-			temp = std::make_shared<MeleeAnt>(MeleeAnt());
-		else if (t == RangedAnt::rangedAntCode.code)
-			temp = std::make_shared<RangedAnt>(RangedAnt());
-		else if (t == TankAnt::tankAntCode.code)
-			temp = std::make_shared<TankAnt>(TankAnt());
-		else if (t == Base::baseType.code)
-			temp = std::make_shared<Base>(Base());
-		else
-			throw std::invalid_argument("Wrong type");
-
+		std::shared_ptr<Object> temp = obj.Create(t);
 		temp->Set(Point(x, y), h);
 
 		obj.stuff[temp->GetId()] = temp;
 
-		if (temp->type != Base::baseType)
+		if (temp->type != Base::type)
 			continue;
 
 		// if base
@@ -84,31 +108,28 @@ std::istream& operator>>(std::istream& is, Player& obj)
 		ch = is.get();
 		if (ch == '-')
 			continue;
+		is >> trainCount;
 
 		obj.ticking[temp->GetId()] = std::chrono::steady_clock::now();
-		while (is.good()) {
-			ch = is.get();
+		for(int i = 0; i < trainCount; i++) {
 
-			if (ch != ':')
-				break;
 			if (!(is >> t >> x >> y >> h))
 				throw std::invalid_argument("Cant read data, corrupted");
 
-			std::shared_ptr<Object> in;
-			if (t == MeleeAnt::meleeAntCode.code)
-				in = std::make_shared<MeleeAnt>(MeleeAnt());
-			else if (t == RangedAnt::rangedAntCode.code)
-				in = std::make_shared<RangedAnt>(RangedAnt());
-			else if (t == TankAnt::tankAntCode.code)
-				in = std::make_shared<TankAnt>(TankAnt());
-			else
-				throw std::invalid_argument("Wrong type");
+			try {
+				temp = obj.Create(t);
+			}
+			catch (const std::invalid_argument& e) {
+				throw e;
+			}
+			temp->Set(Point(x, y), h);
 
-			in->Set(Point(x, y), h);
-
-			obj.train[temp->GetId()].push_back(in);
+			obj.train[temp->GetId()].push_back(temp);
 		}
 	}
+
+	obj.CheckDead();
+	obj.CheckTrain();
 
 	return is;
 }
@@ -124,7 +145,7 @@ void Player::FindEnemy(Player& enemy)
 			if (x.second->HasInRange(*enemyX.second, len))
 				range[x.first][len] = enemyX.second;
 			// if not, add him (again based on length) in std::set in closest
-			else if(x.second->type != Base::baseType)
+			else if(x.second->type != Base::type)
 				closest[x.first][len] = enemyX.second;
 
 		}
@@ -167,15 +188,15 @@ void Player::Input(Command& cmd)
 
 		// choosing the right to train
 		std::shared_ptr<Object> temp;
-		if (cmd == Command::trainMelee && golds.GetMoney() >= costs[MeleeAnt::meleeAntCode])
+		if (cmd == Command::trainMelee && golds.GetMoney() >= costs[MeleeAnt::type])
 		{
 			temp = std::make_shared<MeleeAnt>(MeleeAnt(Point(bases[selectedBase]->GetCoords())));
 		}
-		else if (cmd == Command::trainRange && golds.GetMoney() >= costs[RangedAnt::rangedAntCode])
+		else if (cmd == Command::trainRange && golds.GetMoney() >= costs[RangedAnt::type])
 		{
 			temp = std::make_shared<RangedAnt>(RangedAnt(Point(bases[selectedBase]->GetCoords())));
 		}
-		else if(golds.GetMoney() >= costs[TankAnt::tankAntCode])
+		else if(golds.GetMoney() >= costs[TankAnt::type])
 		{
 			temp = std::make_shared<TankAnt>(TankAnt(Point(bases[selectedBase]->GetCoords())));
 		}
@@ -190,7 +211,7 @@ void Player::Input(Command& cmd)
 void Player::Add(std::shared_ptr<Object> obj)
 {
 	stuff[obj->GetId()] = obj;
-	if (obj->type == Base::baseType) {
+	if (obj->type == Base::type) {
 		bases[obj->GetId()] = obj;
 		train[obj->GetId()] = {};
 	}
@@ -254,6 +275,8 @@ void Player::Actions()
 			}
 			// moving part
 			else {
+				// might want to change this
+				// to move around the obstacle
 				((Ant&)(*itStuff->second)).Move(it->second->GetCoords());
 				maps = &range;
 			}
@@ -262,7 +285,7 @@ void Player::Actions()
 		// -> if no target to attack in range, then move to closest
 		// (need to work on that one too, to not stuck them on one place)
 		else {
-			if (maps == &range && itStuff->second->type != Base::baseType) {
+			if (maps == &range && itStuff->second->type != Base::type) {
 				maps = &closest;
 				continue;
 			}
@@ -291,7 +314,7 @@ void Player::CheckDead()
 		if (ptr->IsAlive())
 			continue;
 
-		if (ptr->type == Base::baseType) {
+		if (ptr->type == Base::type) {
 			bases.erase(ptr->GetId());
 			if (selectedBase == ptr->GetId())
 				selectedBase = -1;
