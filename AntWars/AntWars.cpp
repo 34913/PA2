@@ -40,28 +40,36 @@
 
 #include "Game.h"
 
-int begin(SDL_Window** MainWindow, SDL_Renderer** renderer)
+/**
+ * Starts with init, sets window and renderer.
+ * 
+ * \param MainWindow SDL_Window ptr ref to be set
+ * \param renderer SDL_Renderer ptr ref
+ * \param show Map ref to get size of playing field
+ * \return 0 if succeeded
+ */
+int begin(SDL_Window*& MainWindow, SDL_Renderer*& renderer, Map& show)
 {
 	SDL_Init(SDL_INIT_VIDEO);
 
 	// creating the main window with game
-	*MainWindow = SDL_CreateWindow(
+	MainWindow = SDL_CreateWindow(
 		"AntWars",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		1000,
-		1000,
+		show.GetWidth() * 10 + 300,
+		show.GetHeight() * 10,
 		0
 	);
 
-	if (*MainWindow == NULL) {
+	if (MainWindow == NULL) {
 		// error creating main window
 		std::cout << "Error creating main window" << std::endl;
 		return -1;
 	}
 
-	*renderer = SDL_CreateRenderer(*MainWindow, -1, 0);
-	if (*renderer == NULL) {
+	renderer = SDL_CreateRenderer(MainWindow, -1, 0);
+	if (renderer == NULL) {
 		// error creating renderer
 		std::cout << "Error creating renderer" << std::endl;
 		return -1;
@@ -70,6 +78,14 @@ int begin(SDL_Window** MainWindow, SDL_Renderer** renderer)
 	return 0;
 }
 
+/**
+ * Drawing circle function.
+ * 
+ * \param radius what might it be in a circle
+ * \param x center coordinate
+ * \param y center coordinate
+ * \param renderer SDL_Renderer
+ */
 void DrawCircle(int radius, int x, int y, SDL_Renderer* renderer)
 {
 	// drawing the circle from left side to right side
@@ -81,7 +97,7 @@ void DrawCircle(int radius, int x, int y, SDL_Renderer* renderer)
 	for (int low = 0; low <= radius; low++) {
 
 		// calculate the distances using trigonometric functions
-		int calc = sin(acos((double)low / radius)) * radius;
+		int calc = (int)(sin(acos((double)low / radius)) * radius);
 
 		// draw the line vertically
 		//	-> x stays the same for starting and ending points
@@ -94,6 +110,13 @@ void DrawCircle(int radius, int x, int y, SDL_Renderer* renderer)
 	}
 }
 
+/**
+ * Printing out all the stuff of player.
+ * 
+ * \param p player
+ * \param renderer SDL_Renderer
+ * \param rect SDL_Rect
+ */
 void PrintOut(Player& p, SDL_Renderer* renderer, SDL_Rect* rect)
 {
 	for (auto& x : p.GetStuff()) {
@@ -112,50 +135,68 @@ void PrintOut(Player& p, SDL_Renderer* renderer, SDL_Rect* rect)
 	}
 }
 
+/**
+ * Handling the events.
+ * 
+ * \param g Game reference
+ * \param event event ptr
+ * \return returns 0 on success
+ */
 int Handle(Game& g, SDL_Event* event)
 {
 	while (SDL_PollEvent(event))
 	{
-		if (event->type == SDL_QUIT)
+		if (event->type == SDL_QUIT) {
+			std::cout << "quit!" << std::endl;
 			return 1;
-		if (event->type != SDL_KEYDOWN)
-			break;
-		if (event->key.repeat)
-			break;
+		}
 
-		try {
-			switch (event->key.keysym.sym)
-			{
-			case SDLK_RIGHT:
-				g.p1.Input(Command::nextBase);
+		// keys
+		if (event->type == SDL_KEYDOWN) {
+			if (event->key.repeat)
 				break;
-			case SDLK_LEFT:
-				g.p1.Input(Command::backBase);
-				break;
-			case SDLK_UP:
-				g.Faster();
-				break;
-			case SDLK_DOWN:
-				g.Slower();
-				break;
-			case SDLK_SPACE:
-				g.RunStop();
-				break;
-			case SDLK_1:
-				g.p1.Input(Command::trainMelee);
-				break;
-			case SDLK_2:
-				g.p1.Input(Command::trainRange);
-				break;
-			case SDLK_3:
-				g.p1.Input(Command::trainTank);
-				break;
-			default:
-				break;
+
+			try {
+				switch (event->key.keysym.sym) {
+				case SDLK_RIGHT:
+					g.p1.Input(Command::nextBase);
+					break;
+				case SDLK_LEFT:
+					g.p1.Input(Command::backBase);
+					break;
+				case SDLK_UP:
+					g.Faster();
+					break;
+				case SDLK_DOWN:
+					g.Slower();
+					break;
+				case SDLK_SPACE:
+					g.RunStop();
+					break;
+				case SDLK_1:
+					g.p1.Input(Command::trainMelee);
+					break;
+				case SDLK_2:
+					g.p1.Input(Command::trainRange);
+					break;
+				case SDLK_3:
+					g.p1.Input(Command::trainTank);
+					break;
+				default:
+					break;
+				}
+			}
+			catch (const std::invalid_argument& e) {
+				std::cout << e.what() << std::endl;
 			}
 		}
-		catch (const std::invalid_argument& e) {
-			std::cout << e.what() << std::endl;
+		else if (event->type == SDL_WINDOWEVENT) {
+			switch (event->window.event) {
+			case SDL_WINDOWEVENT_MINIMIZED:
+			case SDL_WINDOWEVENT_FOCUS_LOST:
+				g.RunStop(g.stop);
+				break;
+			}
 		}
 	}
 
@@ -166,6 +207,7 @@ int Handle(Game& g, SDL_Event* event)
 
 int main(int argc, char** args)
 {
+	// Handle the game itself
 	Game g;
 
 	// set the random seed
@@ -177,11 +219,14 @@ int main(int argc, char** args)
 		return 0;
 	}
 
-	SDL_Window* MainWindow = nullptr;
+	SDL_Init(SDL_INIT_VIDEO);
+
+	// creating the main window with game
+	SDL_Window* mainWindow = nullptr;
 	SDL_Renderer* renderer = nullptr;
 
 	try {
-		if (begin(&MainWindow, &renderer) != 0)
+		if (begin(mainWindow, renderer, g.show) != 0)
 			return -1;
 	}
 	catch(const std::invalid_argument& e) {
@@ -239,36 +284,48 @@ int main(int argc, char** args)
 		start = now;
 
 		// event handling
-		// like pressed buttons		
-		Handle(g, event);
-		if (event->type == SDL_QUIT)
+		// like pressed buttons
+		if (Handle(g, event) == 1)
 			break;
 
+		// background
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 		SDL_RenderClear(renderer);
 
-		//
-
+		// player1 objects
 		SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
 		PrintOut(g.p1, renderer, antRect);
 		
+		// player2 objects
 		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 		PrintOut(g.p2, renderer, antRect);
 
-		//
+		// borders
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		SDL_RenderDrawRect(renderer, antRect);
+		for (int y = 0; y < g.show.GetHeight(); y++) {
+			for (int x = 0; x < g.show.GetWidth(); x++) {
+
+				if (g.show[y][x] == g.show.EMPTY)
+					continue;
+
+				antRect->x = x * 10;
+				antRect->y = y * 10;
+				SDL_RenderFillRect(renderer, antRect);
+
+			}
+		}
 
 		// final printout
 		//	-> JUST ONCE !!!
 		SDL_RenderPresent(renderer);
 	}
 
-	system("delay");
-
 	SDL_Quit();
 
 	delete antRect;
 
-	std::cout << "konec" << std::endl;
+	std::cout << "konec" << std::endl << g.p1.CheckBases() << " " << g.p2.CheckBases() << std::endl;
 
 	return 0;
 }
