@@ -21,10 +21,10 @@ std::istream& operator>>(std::istream& is, Map& obj)
 {
 	int width, height;
 	if (!(is >> width >> height))
-		throw std::invalid_argument("Cant read size of playing field, corrupted");
+		throw std::invalid_argument("Cant read size of map, corrupted");
 
 	if (width <= 0 || height <= 0)
-		throw std::invalid_argument("File corrupted, wrong size of map");
+		throw std::invalid_argument("Map file corrupted, wrong size of map");
 
 	char ch = is.get();
 	obj.arr.clear();
@@ -33,12 +33,18 @@ std::istream& operator>>(std::istream& is, Map& obj)
 		for (int w = 0; w < width; w++) {
 
 			if (!is.good())
-				throw std::invalid_argument("File corrupted, not enough characters in map");
+				throw std::invalid_argument("Map file corrupted, not enough characters in map");
 			ch = is.get();
 			obj.arr[i].push_back(ch);
 		}
-		if ((ch = is.get()) != '\n' || !is.good())
-			throw std::invalid_argument("File corrupted, wrong line ending");
+
+		ch = is.get();
+		while (ch != '\n') {
+			if (!is.good())
+				throw std::invalid_argument("Map file corrupted, wrong line ending");
+
+			ch = is.get();
+		}
 	}
 
 	return is;
