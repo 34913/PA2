@@ -31,6 +31,11 @@ class Game
 
 public:
 
+	enum cmd {
+		stop = false,
+		play = true,
+	};
+
 	// accesible
 	// players and map
 
@@ -48,7 +53,7 @@ public:
 	/**
 	 * Loads all the assets.
 	 * 
-	 * \return 
+	 * \return 0 on success
 	 */
 	int Load();
 
@@ -73,7 +78,15 @@ public:
 	void RunStop();
 
 	/**
+	 * Resumes/Pauses the game.
+	 * 
+	 * \param command of type cmd, if equals stop, game will be stopped
+	 */
+	void RunStop(cmd command);
+
+	/**
 	 * Increases speed of the game.
+	 * 
 	 */
 	void Faster();
 

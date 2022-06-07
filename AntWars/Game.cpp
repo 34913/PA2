@@ -10,15 +10,14 @@ Game::Game(int pause)
 
 int Game::Load()
 {
+	//p1.Add(std::make_shared<RangedAnt>(RangedAnt(Point(50, 50))));
+	//p1.Add(std::make_shared<Base>(Base(Point(52, 50))));
 
-	p1.Add(std::make_shared<RangedAnt>(RangedAnt(Point(50, 50))));
-	p1.Add(std::make_shared<Base>(Base(Point(52, 50))));
+	//
 
-	//	
-
-	p2.Add(std::make_shared<RangedAnt>(RangedAnt(Point(80, 70))));
-	p2.Add(std::make_shared<TankAnt>(TankAnt(Point(30, 40))));
-	p2.Add(std::make_shared<Base>(Base(Point(60, 50))));
+	//p2.Add(std::make_shared<RangedAnt>(RangedAnt(Point(80, 70))));
+	//p2.Add(std::make_shared<TankAnt>(TankAnt(Point(30, 40))));
+	//p2.Add(std::make_shared<Base>(Base(Point(60, 50))));
 
 	//p2.Add(TankAnt(Point(11, 12)));
 	//p2.Add(TankAnt(Point(11, 10)));
@@ -52,7 +51,6 @@ int Game::Load()
 	std::ifstream myFileI;
 	std::ofstream myFileO;
 
-	/*
 	myFileI.open("file.txt");
 	if (myFileI.is_open()) {
 		try {
@@ -64,7 +62,6 @@ int Game::Load()
 		}
 	}
 	myFileI.close();
-	*/
 
 	myFileO.open("file.txt");
 	if (myFileO.is_open())
@@ -119,6 +116,11 @@ bool Game::Check()
 void Game::RunStop()
 {
 	running = !running;
+}
+
+void Game::RunStop(cmd command)
+{
+	running = (bool)command;
 }
 
 void Game::Faster()
