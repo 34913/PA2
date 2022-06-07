@@ -1,6 +1,8 @@
-#pragma once
+#ifndef Point_H
+#define Point_H
 
 #include <fstream>
+#include <math.h>
 
 class Point
 {
@@ -65,3 +67,5 @@ public:
 	static double Length(Point& a, Point& b);
 
 };
+
+#endif

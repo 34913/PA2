@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MeleeAnt_H
+#define MeleeAnt_H
 
 #include "Ant.h"
 #include "Point.h"
@@ -10,8 +11,8 @@ class MeleeAnt: public Ant
 {
 	// counters and limit for attack
 	// -> charged up attack, deals more damage
-	int counter;
-	const int limit;
+	int counter = 0;
+	const int limit = 2;
 
 public:
 	
@@ -22,3 +23,5 @@ public:
 	bool Attack(Object& obj) override;
 
 };
+
+#endif

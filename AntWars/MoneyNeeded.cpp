@@ -1,8 +1,5 @@
 #include "MoneyNeeded.h"
 
-MoneyNeeded::MoneyNeeded()
-{}
-
 uint16_t MoneyNeeded::operator[](Object& obj) 
 {
 	return amount[obj.type.code];

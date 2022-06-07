@@ -1,13 +1,11 @@
 #include "Level.h"
 
-Level::Level(int startingExp, int Startinglevel)
+Level::Level(int startingExp, int startingLevel)
 	:exp(startingExp),
-	level(Startinglevel),
-	lastLevel(1),
-	limit(1000)
+	level(startingLevel)
 {}
 
-bool Level::AddExp(Object& obj)
+bool Level::AddExp(const Object& obj)
 {
 	if(amount.find(obj.type.code) == amount.end())
 		throw std::invalid_argument("not known type of object");
@@ -60,4 +58,10 @@ void Level::begin()
 	amount.insert({ RangedAnt::type.code, 15 });
 	amount.insert({ TankAnt::type.code, 30 });
 	amount.insert({ Base::type.code, 500 });
+}
+
+void Level::Up()
+{
+	limit *= 2;
+	MoneyNeeded::Up();
 }

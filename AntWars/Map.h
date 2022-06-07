@@ -1,4 +1,5 @@
-#pragma once
+#ifndef Map_H
+#define Map_H
 
 #include <vector>
 #include <fstream>
@@ -55,3 +56,5 @@ public:
 	const std::vector<std::vector<char>>& GetArr() const;
 
 };
+
+#endif

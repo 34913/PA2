@@ -1,15 +1,16 @@
-#pragma once
+#ifndef Ant_H
+#define Ant_H
 
 #include "Point.h"
 #include "Stats.h"
 #include "Object.h"
 
-class Ant abstract : public Object
+class Ant : public Object
 {
 public:
 
 	Ant(const Point& coords, const Stats& values, const TypeCode& type);
-
+	
 	/**
 	 * Moving the ant.
 	 * 
@@ -19,3 +20,5 @@ public:
 	virtual Point& Move(const Point& dir);
 
 };
+
+#endif

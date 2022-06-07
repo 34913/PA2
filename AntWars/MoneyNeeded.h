@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MoneyNeeded_H
+#define MoneyNeeded_H
 
 #include "Base.h"
 #include "RangedAnt.h"
@@ -35,10 +36,6 @@ protected:
 
 public:
 
-	// cons/destructor
-
-	MoneyNeeded();
-
 	// operators
 
 	uint16_t operator [](Object& obj);
@@ -65,3 +62,4 @@ public:
 
 };
 
+#endif

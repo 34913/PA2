@@ -6,8 +6,8 @@ Map::Map()
 std::ostream& operator<<(std::ostream& os, Map& obj)
 {
 	os << obj.GetWidth() << " " << obj.GetHeight() << std::endl;
-	for (int i = 0; i < obj.GetHeight(); i++) {
-		for (int w = 0; w < obj.GetWidth(); w++) {
+	for (size_t i = 0; i < obj.GetHeight(); i++) {
+		for (size_t w = 0; w < obj.GetWidth(); w++) {
 
 			os.put(obj.arr[i][w]);
 		}

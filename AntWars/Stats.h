@@ -1,4 +1,5 @@
-#pragma once
+#ifndef Stats_H
+#define Stats_H
 
 #include <fstream>
 
@@ -24,3 +25,5 @@ public:
 	friend std::ostream& operator << (std::ostream& os, const Stats& s);
 
 };
+
+#endif

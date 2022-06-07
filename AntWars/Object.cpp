@@ -3,15 +3,13 @@
 Object::Object(const Point& coords, const Stats& values, const TypeCode& type)
 	:coords(coords),
 	values(values),
-	type(type),
-	id(readyID.getLowest())
+	type(type)
 {}
 
 Object::Object(const Object& obj)
-	:coords(obj.coords),
-	values(obj.values),
-	type(obj.type),
-	id(readyID.getLowest())
+	:values(obj.values),
+	coords(obj.coords),
+	type(obj.type)
 {}
 
 Object::~Object()

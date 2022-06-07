@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RangedAnt_H
+#define RangedAnt_H
 
 #include "Ant.h"
 #include "Point.h"
@@ -20,3 +21,5 @@ public:
 	bool Attack(Object& obj) override;
 
 };
+
+#endif

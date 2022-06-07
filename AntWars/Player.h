@@ -1,4 +1,5 @@
-#pragma once
+#ifndef Player_H
+#define Player_H
 
 #include "Base.h"
 #include "Object.h"
@@ -36,7 +37,7 @@ protected:
 
 	// selected base uniq id
 	// used for training the troops to one selected base based on this uniq id
-	uint32_t selectedBase;
+	uint32_t selectedBase = -1;
 	
 	// saving all the bases of this player
 	std::map<uint32_t, std::shared_ptr<Object>> bases;
@@ -71,8 +72,6 @@ public:
 
 	Player(const std::string& name = "Player");
 	
-	Player(const Level& points, const Money& rewards, const std::string& name = "Player");
-
 	~Player();
 
 	// operators
@@ -129,6 +128,8 @@ public:
 	 */
 	void CheckTrain();
 
+	bool CheckBases();
+
 	// getters
 
 	/**
@@ -173,4 +174,13 @@ public:
 	 */
 	std::chrono::steady_clock::time_point& GetTicking();
 
+	/**
+	 * Stuff getter.
+	 *
+	 * \return all stuff
+	 */
+	std::unordered_map<uint32_t, std::shared_ptr<Object>>& GetStuff();
+
 };
+
+#endif

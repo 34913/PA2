@@ -1,4 +1,5 @@
-#pragma once
+#ifndef Command_H
+#define Command_H
 
 class Command
 {
@@ -23,3 +24,5 @@ public:
 	bool operator != (const Command& com) const;
 
 };
+
+#endif

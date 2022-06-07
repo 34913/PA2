@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UniqID_H
+#define UniqID_H
 
 #include <set>
 #include <cstdint>
@@ -75,3 +76,5 @@ inline void UniqID<T>::Removed(T id)
 {
 	available.insert(id);
 }
+
+#endif

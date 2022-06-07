@@ -1,4 +1,12 @@
-#pragma once
+#ifndef Level_H
+#define Level_H
+
+#include "Object.h"
+
+#include "MeleeAnt.h"
+#include "RangedAnt.h"
+#include "TankAnt.h"
+#include "Base.h"
 
 #include "MoneyNeeded.h"
 
@@ -8,10 +16,10 @@ class Level : public MoneyNeeded
 {
 	int exp;
 	int level;
-	int lastLevel;
+	int lastLevel = 1;
 
 	// max exp on this level
-	const int limit;
+	int limit = 1000;
 
 	void Print(std::ostream& os) override;
 
@@ -25,7 +33,7 @@ public:
 	 * \param startingExp amount of experience on the beggining, default = 0
 	 * \param level to start with, default = 1
 	 */
-	Level(int startingExp = 0, int level = 1);
+	Level(int startingExp = 0, int startingLevel = 1);
 
 	/**
 	 * add expierence.
@@ -33,7 +41,7 @@ public:
 	 * \param obj of killed object, determines the amount of points
 	 * \return true if level up is present
 	 */
-	bool AddExp(Object& obj);
+	bool AddExp(const Object& obj);
 
 	/**
 	 * returns level.
@@ -55,4 +63,8 @@ public:
 	 */
 	void begin() override;
 
+	void Up() override;
+
 };
+
+#endif

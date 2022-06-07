@@ -18,22 +18,13 @@ std::shared_ptr<Object> Player::Create(int type)
 }
 
 Player::Player(const std::string& name)
-	:golds(0),
-	selectedBase(-1),
-	name(name)
+	:name(name)
 {
 	points.begin();
 	golds.begin();
 	costs.begin();
 	times.begin();
 }
-
-Player::Player(const Level& points, const Money& rewards, const std::string& name)
-	:points(points),
-	golds(golds),
-	selectedBase(-1),
-	name(name)
-{}
 
 Player::~Player()
 {}
@@ -102,6 +93,8 @@ std::istream& operator>>(std::istream& is, Player& obj)
 		if (temp->type != Base::type)
 			continue;
 
+		obj.bases[temp->GetId()] = temp;
+
 		// if base
 		// read all the training ants in queue
 		is.get();
@@ -156,16 +149,24 @@ void Player::Input(Command& cmd)
 {
 	// shifting the selected base
 	if (cmd == Command::nextBase || cmd == Command::backBase) {
+		if (bases.empty())
+			throw std::invalid_argument("No bases for " + name);
 		auto it = bases.find(selectedBase);
 		if (it == bases.end()) {
 			it = bases.begin();
 			selectedBase = it->second->GetId();
 			return;
 		}
-		if (cmd == Command::nextBase)
+		if (cmd == Command::nextBase) {
 			it++;
-		else
+			if (it == bases.end())
+				it = bases.begin();
+		}
+		else {
+			if (it == bases.begin())
+				it = bases.end();
 			it--;
+		}
 		selectedBase = it->second->GetId();
 	}
 	// training troops in selected base
@@ -181,7 +182,7 @@ void Player::Input(Command& cmd)
 		if (train[selectedBase].size() == 5)
 			throw std::invalid_argument("Training queue is full");
 
-		// setting the start of trainíng time if empty
+		// setting the start of trainï¿½ng time if empty
 		//	-> need to start it first
 		if (train[selectedBase].empty())
 			ticking[selectedBase] = std::chrono::steady_clock::now();
@@ -203,9 +204,6 @@ void Player::Input(Command& cmd)
 		train[selectedBase].push_back(temp);
 
 	}
-	// unknown command
-	else
-		throw std::invalid_argument("Unknown command");
 }
 
 void Player::Add(std::shared_ptr<Object> obj)
@@ -360,6 +358,11 @@ void Player::CheckTrain()
 	}
 }
 
+bool Player::CheckBases()
+{
+	return bases.empty();
+}
+
 Money& Player::GetGolds()
 {
 	return golds;
@@ -397,4 +400,9 @@ std::chrono::steady_clock::time_point& Player::GetTicking()
 		throw std::invalid_argument("Not selected base");
 
 	return ticking[selectedBase];
+}
+
+std::unordered_map<uint32_t, std::shared_ptr<Object>>& Player::GetStuff()
+{
+	return stuff;
 }

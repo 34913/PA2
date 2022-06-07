@@ -1,4 +1,5 @@
-#pragma once
+#ifndef Object_H
+#define Object_H
 
 #include "Point.h"
 #include "Stats.h"
@@ -8,7 +9,7 @@
 #include <math.h>
 #include <ostream>
 
-class Object abstract
+class Object
 {
 protected:
 
@@ -18,7 +19,7 @@ protected:
 	// stats of this unit
 	Stats values;
 
-	const uint32_t id;
+	const uint32_t id = readyID.getLowest();
 
 public:
 
@@ -121,3 +122,5 @@ public:
 	uint32_t GetId() const;
 
 };
+
+#endif

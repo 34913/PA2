@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TankAnt_H
+#define TankAnt_H
 
 #include "Ant.h"
 #include "Point.h"
@@ -16,3 +17,5 @@ public:
 	bool Defend(Object& obj) override;
 
 };
+
+#endif

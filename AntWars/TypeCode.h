@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TypeCode_H
+#define TypeCode_H
 
 #include <fstream>
 
@@ -18,3 +19,5 @@ public:
 	friend std::ostream& operator << (std::ostream& os, const TypeCode& x);
 
 };
+
+#endif

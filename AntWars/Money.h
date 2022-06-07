@@ -1,6 +1,12 @@
-#pragma once
+#ifndef Money_H
+#define Money_H
 
 #include "MoneyNeeded.h"
+
+#include "MeleeAnt.h"
+#include "RangedAnt.h"
+#include "TankAnt.h"
+#include "Base.h"
 
 #include <set>
 
@@ -33,3 +39,5 @@ public:
 	void begin() override;
 
 };
+
+#endif

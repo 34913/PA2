@@ -1,4 +1,5 @@
-#pragma once
+#ifndef Base_H
+#define Base_H
 
 #include "Object.h"
 #include "Point.h"
@@ -12,6 +13,8 @@ public:
 
 	static TypeCode type;
 
-	Base(const Point& coords = Point(0,0));
+	Base(const Point& coords = Point(0, 0));
 
 };
+
+#endif

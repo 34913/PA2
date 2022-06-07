@@ -1,4 +1,5 @@
-#pragma once
+#ifndef AutoPlayer_H
+#define AutoPlayer_H
 
 #include "Player.h"
 
@@ -11,3 +12,5 @@ public:
 	void Input();
 
 };
+
+#endif
