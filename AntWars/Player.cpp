@@ -380,12 +380,14 @@ void Player::CheckTrain()
 
 void Player::StopTrain()
 {
-
+	time = std::chrono::steady_clock::now();
 }
 
 void Player::ResumeTrain()
 {
-
+	auto temp = std::chrono::steady_clock::now();
+	for (auto& x : bases)
+		x.second.ticking = temp - time + x.second.ticking;
 }
 
 bool Player::CheckBases()

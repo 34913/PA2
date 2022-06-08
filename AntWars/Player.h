@@ -72,6 +72,8 @@ protected:
 
 	std::shared_ptr<Object> Create(int type);
 
+	std::chrono::steady_clock::time_point time;
+
 public:
 
 	// cons/destructor
