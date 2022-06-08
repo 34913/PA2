@@ -7,8 +7,8 @@ Object::Object(const Point& coords, const Stats& values, const TypeCode& type)
 {}
 
 Object::Object(const Object& obj)
-	:values(obj.values),
-	coords(obj.coords),
+	:coords(Point(obj.coords)),
+	values(Stats(obj.values)),
 	type(obj.type)
 {}
 
