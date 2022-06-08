@@ -16,6 +16,13 @@ public:
 	static const char EMPTY = ' ';
 	static const char WALL = '#';
 
+	static const char ANT_P1 = 'X';
+	static const char ANT_P2 = 'O';
+
+	static const char BASE_P1 = 'P';
+	static const char BASE_P2 = 'R';
+
+
 	// cons/destructor
 
 	Map();
