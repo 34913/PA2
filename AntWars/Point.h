@@ -8,6 +8,16 @@ class Point
 {
 public:
 	int x, y;
+	
+	static Point dirs[];
+
+	/**
+	 * Returns Dir from dirs based on index, which can be out of bounds.
+	 *	-> it is recalculated
+	 *
+	 * \return dir ref based on index
+	 */
+	static Point& GetDir(int index);
 
 	// constructors
 	
@@ -22,6 +32,8 @@ public:
 	bool operator != (const Point& p) const;
 
 	friend std::ostream& operator << (std::ostream& os, const Point& x);
+
+	Point operator + (const Point& obj);
 
 	// methods
 
@@ -48,6 +60,32 @@ public:
 	 * 
 	 */
 	void Up();
+
+	/**
+	 * Finds the direction and returns index from dirs.
+	 * 
+	 * \param absDir point which you are headed
+	 * \return index of dirs
+	 */
+	int FindDir(const Point& absDir);
+
+	/**
+	 * Turns relatively right on where you are headed
+	 * so if you are [0,0] and dir is [0,1] -> this gets result [1,1]
+	 *	-> once more and you are [1,0]
+	 * 
+	 * \param dir where you are headed
+	 */
+	void TurnRight(int& dir);
+
+	/**
+	 * Turns relatively right on where you are headed
+	 * so if you are [0,0] and dir is [0,1] -> this gets result [-1,1]
+	 *	-> once more and you are [-1,0]
+	 * 
+	 * \param dir where you are headed
+	 */
+	void TurnLeft(int& dir);
 
 	/**
 	 * Count the length of this and given point.
