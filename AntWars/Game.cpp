@@ -58,7 +58,7 @@ int Game::Load(std::string saveName)
 #ifdef _WIN32
 	path = dir + "\\" + saveName + "\\file.txt";
 #else
-	path = directory + "/" + saveName + "/file.txt";
+	path = dir + "/" + saveName + "/file.txt";
 #endif
 	// check if exists
 	myFileI.open(path);
@@ -77,7 +77,7 @@ int Game::Load(std::string saveName)
 #ifdef _WIN32
 	path = dir + "\\" + saveName + "\\map.txt";
 #else
-	path = directory + "/" + saveName + "/map.txt";
+	path = dir + "/" + saveName + "/map.txt";
 #endif
 	// check if exists
 	myFileI.open(path);

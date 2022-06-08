@@ -29,9 +29,9 @@ public:
 
 	/**
 	 * constructor.
-	 * 
+	 *
 	 * \param startingExp amount of experience on the beggining, default = 0
-	 * \param level to start with, default = 1
+	 * \param startingLevel to start with, default = 1
 	 */
 	Level(int startingExp = 0, int startingLevel = 1);
 

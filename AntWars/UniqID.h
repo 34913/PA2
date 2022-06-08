@@ -36,7 +36,7 @@ public:
 	/**
 	 * retrieves given id for reuse.
 	 *
-	 * \param used id
+	 * \param id used id
 	 */
 	void Removed(T id);
 

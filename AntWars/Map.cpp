@@ -6,10 +6,13 @@ Map::Map()
 std::ostream& operator<<(std::ostream& os, Map& obj)
 {
 	os << obj.GetWidth() << " " << obj.GetHeight() << std::endl;
-	for (size_t i = 0; i < obj.GetHeight(); i++) {
-		for (size_t w = 0; w < obj.GetWidth(); w++) {
+	for (int i = 0; i < obj.GetHeight(); i++) {
+		for (int w = 0; w < obj.GetWidth(); w++) {
 
-			os.put(obj.arr[i][w]);
+			if (obj.arr[i][w] != Map::WALL && obj.arr[i][w] != Map::EMPTY)
+				os.put(Map::EMPTY);
+			else
+				os.put(obj.arr[i][w]);
 		}
 		os << std::endl;
 	}
@@ -57,16 +60,16 @@ std::vector<char>& Map::operator[](size_t x)
 	return arr[x];
 }
 
-size_t Map::GetHeight() const
+int Map::GetHeight() const
 {
-	return arr.size();
+	return (int)arr.size();
 }
 
-size_t Map::GetWidth() const
+int Map::GetWidth() const
 {
 	if (GetHeight() == 0)
 		return 0;
-	return arr[0].size();
+	return (int)arr[0].size();
 }
 
 const std::vector<std::vector<char>>& Map::GetArr() const

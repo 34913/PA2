@@ -46,14 +46,14 @@ public:
 	 * 
 	 * \return height of playing field
 	 */
-	size_t GetHeight() const;
+	int GetHeight() const;
 
 	/**
 	 * Width getter.
 	 * 
 	 * \return width of playing field
 	 */
-	size_t GetWidth() const;
+	int GetWidth() const;
 
 	/**
 	 * Whole map getter.

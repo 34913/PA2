@@ -71,15 +71,15 @@ public:
 	/**
 	 * Loads all the assets from given directory.
 	 *
-	 * \param directory where to load it from (relative path)
+	 * \param saveName from which name load it
 	 * \return 0 on success
 	 */
 	int Load(std::string saveName);
 
 	/**
 	 * Saves ongoing game in given directory.
-	 * 
-	 * \param directory where to save it (relative path)
+	 *
+	 * \param saveName how to save it
 	 * \return 0 on success
 	 */
 	int Save(std::string saveName);
