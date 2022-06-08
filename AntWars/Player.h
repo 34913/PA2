@@ -16,6 +16,8 @@
 
 #include "Command.h"
 
+#include "Map.h"
+
 #include <string>
 
 #include <unordered_map>
@@ -122,7 +124,7 @@ public:
 	 * ALl the action all objects has to do.
 	 * 
 	 */
-	void Actions();
+	void Actions(Map& show);
 
 	/**
 	 * Checks all the dead objects.

@@ -167,9 +167,14 @@ void Player::Input(Command& cmd)
 				it = bases.begin();
 		}
 		else {
-			if (it == bases.begin())
-				it = bases.end();
-			it--;
+			return;
+
+			// not possible
+			// can cycle all and set the previous, not worth it really
+			
+			//if (it == bases.begin())
+			//	it = bases.end();
+			//it--;
 		}
 		selectedBase = it->second.ptr->GetId();
 	}
@@ -240,7 +245,7 @@ void Player::PrintOut()
 	std::cout << std::endl << std::endl;
 }
 
-void Player::Actions()
+void Player::Actions(Map& show)
 {
 	//PrintOut();
 
@@ -251,6 +256,8 @@ void Player::Actions()
 
 	// for changing to either to move to closest or attack on someone in range
 	std::map<double, std::shared_ptr<Object>>* maps = &itStuff->second.range;
+
+	Point go(0, 0);
 
 	while (true) {
 		// if is alive, then find enemy
@@ -294,7 +301,46 @@ void Player::Actions()
 			else {
 				// might want to change this
 				// to move around the obstacle
-				((Ant&)(*itStuff->second.ptr)).Move(it->second->GetCoords());
+
+				if (itStuff->second.ptr->type == Base::type)
+					throw std::invalid_argument("Base cant move, internal error");
+
+				Point pos = itStuff->second.ptr->GetCoords();
+
+				//((Ant&)(*itStuff->second.ptr)).Move(it->second->GetCoords());
+				((Ant&)(*itStuff->second.ptr)).TryMove(it->second->GetCoords(), go);
+
+				if (show[go.y][go.x] == Map::EMPTY) {
+					show[pos.y][pos.x] = Map::EMPTY;
+					((Ant&)(*itStuff->second.ptr)).Move(go);
+					show[go.y][go.x] = Map::ANT_P1;
+				}
+				else {
+					int dir = itStuff->second.ptr->GetCoords().FindDir(go);
+
+					int cA = 0;
+					int cB = 0;
+
+					while (cA != 5 && cB != 4) {
+
+						bool r = rand() % 2;
+						if ((r && (cA < 4 || cB == 4)) || (cA == 4 && cB == 4)) {
+							cA++;
+							go = itStuff->second.ptr->GetCoords() + Point::GetDir(dir - cA);
+						}
+						else {
+							cB++;
+							go = itStuff->second.ptr->GetCoords() + Point::GetDir(dir + cB);
+						}
+
+						if (show[go.y][go.x] == Map::EMPTY) {
+							show[pos.y][pos.x] = Map::EMPTY;
+							((Ant&)(*itStuff->second.ptr)).Move(go);
+							show[go.y][go.x] = Map::ANT_P1;
+							break;
+						}
+					}
+				}
 
 				itStuff++;
 				if (itStuff == stuff.end())
