@@ -31,6 +31,10 @@
 
 #include <fstream>
 
+/**
+ * Saving all the data about base.
+ * ptr, training queue and time point when the training begun
+ */
 typedef struct BaseStruct
 {
 
@@ -39,6 +43,11 @@ typedef struct BaseStruct
 	std::chrono::steady_clock::time_point ticking;
 
 } BaseType;
+
+/**
+ * Saving all the data about any Stuff.
+ * like ptr, closest or in range to be used afterwards
+ */
 typedef struct StuffStruct
 {
 
@@ -52,8 +61,10 @@ class Player
 {
 protected:
 
+	// name of player, implicitly Player in constructor
 	std::string name;
 
+	// saving all the objects under player
 	std::unordered_map<uint32_t, BaseType> bases;
 	std::unordered_map<uint32_t, StuffType> stuff;
 
@@ -72,8 +83,16 @@ protected:
 
 	TrainingTime times;
 
+	/**
+	 * Creates new object with shared_ptr based on type without any info so far.
+	 * 
+	 * \param type determines which object of which type it is
+	 * \return the shared_ptr to created object
+	 */
 	std::shared_ptr<Object> Create(int type);
 
+	// saves the time in case of pause of the game
+	// needs to be done, otherwise trains without control on stop of the game
 	std::chrono::steady_clock::time_point time;
 
 public:
@@ -138,10 +157,24 @@ public:
 	 */
 	void CheckTrain();
 
+	/**
+	 * Stop the training gueue, so save the info about it.
+	 * It must be restored afterwards
+	 * 
+	 */
 	void StopTrain();
 
+	/**
+	 * Restores training again.
+	 * 
+	 */
 	void ResumeTrain();
 
+	/**
+	 * Returns info about players bases.
+	 * 
+	 * \return true if player does not have any bases left
+	 */
 	bool CheckBases();
 
 	// getters

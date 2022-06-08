@@ -307,20 +307,28 @@ void Player::Actions(Map& show)
 
 				Point pos = itStuff->second.ptr->GetCoords();
 
-				//((Ant&)(*itStuff->second.ptr)).Move(it->second->GetCoords());
+				// try moving in desired way
 				((Ant&)(*itStuff->second.ptr)).TryMove(it->second->GetCoords(), go);
 
+				// check, if its clear, go that way
 				if (show[go.y][go.x] == Map::EMPTY) {
 					show[pos.y][pos.x] = Map::EMPTY;
 					((Ant&)(*itStuff->second.ptr)).Move(go);
 					show[go.y][go.x] = Map::ANT_P1;
 				}
 				else {
+
+					// decides where are u headed -> direction
+					//	-> gets it in form of int index -> Point::dirs array can be accessed
 					int dir = itStuff->second.ptr->GetCoords().FindDir(go);
 
 					int cA = 0;
 					int cB = 0;
 
+					// randomly decides, the ants might get stuck, it is not a bug, it is a feature
+					// ants try their way more or less in mass randomly, to get to the finish
+					// trying "randomly" to choose a way, first the way which is closer in turning as my desired way
+					//	-> and so on
 					while (cA != 5 && cB != 4) {
 
 						bool r = rand() % 2;
