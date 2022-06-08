@@ -51,13 +51,7 @@ double Point::Length(Point& diff)
 
 double Point::Length(Point& a, Point& b)
 {
-	int temp[2] = { 0,0 };
-	temp[0] = a.x - b.x;
-	temp[1] = a.y - b.y;
-
-	double len = pow(temp[0], 2) + pow(temp[1], 2);
-
 	// count the length from one to another
 	// classic triangle
-	return sqrt(len);
+	return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 }
