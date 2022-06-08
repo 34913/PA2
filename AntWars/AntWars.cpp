@@ -1,12 +1,7 @@
 ﻿// AntWars.cpp : Tento soubor obsahuje funkci main. Provádění programu se tam zahajuje a ukončuje.
 //
 
-#include <iostream>
-
 #ifdef linux
-// #include <SDL2/SDL_platform.h>
-// #include <SDL2/SDL.h>
-// #include <SDL2/SDL_pixels.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_pixels.h>
 #else
@@ -15,6 +10,7 @@
 #endif
 
 #include <chrono>
+#include <iostream>
 
 #include "UniqID.h"
 #include "TypeCode.h"
@@ -85,8 +81,8 @@ int begin(SDL_Window*& MainWindow, SDL_Renderer*& renderer, Map& show)
 		"AntWars",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		show.GetWidth() * 10 + 300,
-		show.GetHeight() * 10,
+		(int)show.GetWidth() * 10 + 300,
+		(int)show.GetHeight() * 10,
 		0
 	);
 
@@ -164,6 +160,142 @@ void PrintOut(Player& p, SDL_Renderer* renderer, SDL_Rect* rect)
 }
 
 /**
+ * Loads the game from save file.
+ *
+ * \param g Game ref
+ * \return 0 if any game successfuly loaded
+ */
+int Load(Game& g)
+{
+	const std::string open = "open";
+	const std::string quit = "quit";
+
+	// possible commands
+	std::cout << "\"" + open + "\" to open game save" << std::endl
+		<< "\"" + quit + "\" to leave" << std::endl << std::endl;
+
+	std::string com;
+	std::cout << "List of saved games:" << std::endl;
+	std::vector<std::string> saves;
+
+	// tried to move all file handling from AntWars.cpp file
+	g.GetFiles(saves);
+
+	for (auto& x : saves)
+		std::cout << x << std::endl;
+
+	std::cout << std::endl;
+
+	// cycle with commands
+	// checks play, open and quit
+	while (true) {
+		std::cout << ":";
+		std::cin >> com;
+
+		if (com == open) {
+			// load and then check if it suits one of known save files as printed
+			std::cout << "Name of save: ";
+			std::cin >> com;
+
+			int i;
+			for (i = 0; i < saves.size(); i++) {
+				if (saves[i].substr(1) == com)
+					break;
+			}
+			if (i == saves.size()) {
+				std::cout << "Save named " << com << " does not exists" << std::endl << std::endl;
+				continue;
+			}
+
+			// try to load it, can be fail in loading (corrupted file) or the file missing completely
+			try {
+				g.Load(com);
+			}
+			catch (const std::invalid_argument& e) {
+				std::cout << e.what() << std::endl << std::endl;
+				continue;
+			}
+
+			std::cout << "Save loaded" << std::endl
+				<< "Enter \"" + quit + " to quit" << std::endl << std::endl;
+		}
+		else if (com == quit) {
+			std::cout << "Quiting now" << std::endl << std::endl;
+			break;
+		}
+		else
+			std::cout << "Dont know this command" << std::endl << std::endl;
+	}
+	return g.GetLoaded();
+}
+
+/**
+ * Saves the ongoing game in save file.
+ *
+ * \param g Game red
+ * \return 0 if succeeded
+ */
+int Save(Game& g, bool skip = true)
+{
+	const std::string save = "save";
+	const std::string quit = "quit";
+	std::string com;
+
+	if (skip) {
+		std::cout << "\"" + save + "\" to open game save" << std::endl
+			<< "\"" + quit + "\" to leave" << std::endl << std::endl;
+	}
+
+	while (skip) {
+
+		std::cout << ":";
+		std::cin >> com;
+
+		if (com == save) {
+
+			std::cout << "Name of save: ";
+			std::cin >> com;
+
+			if (com.length() > 8) {
+				std::cout << "Try to make it shorter (max 8 characters)" << std::endl;
+				continue;
+			}
+			bool control = false;
+			for (auto& x : com) {
+				if (!isalnum(x)) {
+					control = true;
+					break;
+				}
+			}
+			if (control) {
+				std::cout << "Try to enter just alpha numeric characters" << std::endl;
+				continue;
+			}
+
+			try {
+				g.Save(com);
+			}
+			catch (const std::invalid_argument& e) {
+				std::cout << e.what() << std::endl << std::endl;
+				continue;
+			}
+
+			std::cout << "Save saved" << std::endl
+				<< "Enter \"" + quit + "\" to quit" << std::endl << std::endl;
+
+		}
+		else if (com == quit) {
+			std::cout << "Quiting now" << std::endl << std::endl;
+			return 1;
+		}
+		else
+			std::cout << "Dont know this command" << std::endl << std::endl;
+	}
+
+	return 0;
+}
+
+/**
  * Handling the events.
  * 
  * \param g Game reference
@@ -175,9 +307,9 @@ int Handle(Game& g, SDL_Event* event)
 	while (SDL_PollEvent(event))
 	{
 		if (event->type == SDL_QUIT) {
-			std::cout << "quit!" << std::endl;
 			return 1;
 		}
+		SDL_Keymod mod = SDL_GetModState();
 
 		// keys
 		if (event->type == SDL_KEYDOWN) {
@@ -201,13 +333,19 @@ int Handle(Game& g, SDL_Event* event)
 				case SDLK_SPACE:
 					g.RunStop();
 					break;
-				case SDLK_1:
+				case SDLK_s:
+					std::cout << "s" << std::endl;
+					if (mod & KMOD_CTRL && !g.GetRunning()) {
+						Save(g);
+					}
+					break;
+				case SDLK_KP_1:
 					g.p1.Input(Command::trainMelee);
 					break;
-				case SDLK_2:
+				case SDLK_KP_2:
 					g.p1.Input(Command::trainRange);
 					break;
-				case SDLK_3:
+				case SDLK_KP_3:
 					g.p1.Input(Command::trainTank);
 					break;
 				default:
@@ -231,21 +369,25 @@ int Handle(Game& g, SDL_Event* event)
 	return 0;
 }
 
+//
 // main
+//
 
 int main(int argc, char** args)
 {
 	// Handle the game itself
-	Game g;
+	Game g("examples");
 
 	// set the random seed
 	// some random crap, determined by smashing fingers on num pad
 	srand((unsigned long)time(NULL) + (rand() % 37));
 
-	//Game game;
-	if (g.Load() != 0) {
-		return 0;
-	}
+	// load assets
+
+	if (Load(g) == false)
+		return 1;
+
+	// program
 
 	SDL_Init(SDL_INIT_VIDEO);
 
@@ -285,10 +427,7 @@ int main(int argc, char** args)
 
 	//SDL_Surface* Solid = TTF_RenderText_Solid(MyFont, "Solid", *RedColor);
 
-	while(true) {
-		if (g.p1.CheckBases() || g.p2.CheckBases())
-			break;
-
+	while(g.Check()) {
 		// set the time point
 		now = std::chrono::steady_clock::now();
 
@@ -296,7 +435,8 @@ int main(int argc, char** args)
 		// do something, like move all the ants
 		millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - last);
 		if (g.GetRunning() && millis.count() >= g.GetPause()) {
-			g.Play();
+			if (g.Play() != 0)
+				break;
 			last = now;
 		}
 
@@ -331,10 +471,10 @@ int main(int argc, char** args)
 		// borders
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_RenderDrawRect(renderer, antRect);
-		for (int y = 0; y < g.show.GetHeight(); y++) {
-			for (int x = 0; x < g.show.GetWidth(); x++) {
+		for (int y = 0; y < (int)g.show.GetHeight(); y++) {
+			for (int x = 0; x < (int)g.show.GetWidth(); x++) {
 
-				if (g.show[y][x] == g.show.EMPTY)
+				if (g.show[y][x] != Map::WALL)
 					continue;
 
 				antRect->x = x * 10;

@@ -102,13 +102,15 @@ int Game::Save(std::string saveName)
 
 	// set paths for files
 #ifdef _WIN32
-	pathFile = dir + "\\" + saveName + "\\file.txt";
-	pathMap = dir + "\\" + saveName + "\\map.txt";
+	std::string dirSave = dir + "\\" + saveName;
+	pathFile = dirSave + "\\file.txt";
+	pathMap = dirSave + "\\map.txt";
 #else
-	pathFile = directory + "/" + saveName + "/file.txt";
-	pathMap = directory + "/" + saveName + "/map.txt";
+	std::string dirSave = dir + "/" + saveName;
+	pathFile = dirSave + "/file.txt";
+	pathMap = dirSave + "/map.txt";
 #endif
-
+	
 	// chceck if it already exists
 	myFileI.open(pathFile);
 	if (myFileI.is_open())
@@ -116,6 +118,9 @@ int Game::Save(std::string saveName)
 	myFileI.open(pathMap);
 	if (myFileI.is_open())
 		throw std::invalid_argument("Save already exists with name " + dir);
+
+	if (!std::filesystem::create_directory(std::filesystem::path(dirSave)))
+		throw std::invalid_argument("Cant create directory " + dirSave);
 
 	myFileO.open(pathFile);
 	if (!myFileO.is_open())
@@ -163,7 +168,7 @@ int Game::Play()
 
 bool Game::Check()
 {
-	return true;
+	return !p1.CheckBases() && !p2.CheckBases();
 }
 
 void Game::RunStop()
