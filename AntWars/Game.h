@@ -16,11 +16,16 @@
 #include "Base.h"
 
 #include <iostream>
+#include <filesystem>
+#include <fstream>
 
 class Game
 {
+	// true if game has been succesfully loaded
+	bool loaded = false;
+
 	// true if game is running
-	bool running;
+	bool running = false;
 
 	// settings of how fast is the game running, rise the speed etc..
 	//	-> everything in milliseconds
@@ -28,6 +33,7 @@ class Game
 	const int low;
 	const int high;
 	const int rise;
+	std::string dir;
 
 public:
 
@@ -46,20 +52,30 @@ public:
 
 	// constructor
 
-	Game(int pause = 500);
+	Game(std::string dir = "examples", int pause = 500);
 
 	// methods
-
+	
 	/**
-	 * Loads all the assets.
-	 * 
+	 * Loads all the assets from given directory.
+	 *
+	 * \param directory where to load it from (relative path)
 	 * \return 0 on success
 	 */
-	int Load();
+	int Load(std::string saveName);
+
+	/**
+	 * Saves ongoing game in given directory.
+	 * 
+	 * \param directory where to save it (relative path)
+	 * \return 0 on success
+	 */
+	int Save(std::string saveName);
 
 	/**
 	 * Plays one cycle of game.
 	 * 
+	 * \return 0 if game is still runnning
 	 */
 	int Play();
 
@@ -99,7 +115,13 @@ public:
 
 	bool GetRunning();
 
+	bool GetLoaded();
+
 	int GetPause();
+
+	std::string& GetDir();
+
+	void GetFiles(std::vector<std::string>& arr);
 
 };
 
