@@ -19,6 +19,8 @@ public:
 	 */
 	virtual Point& Move(const Point& dir);
 
+	virtual void TryMove(const Point& dir, Point& possible);
+
 };
 
 #endif
