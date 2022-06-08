@@ -40,6 +40,34 @@
 
 #include "Game.h"
 
+/*! \mainpage AntWars Documentation
+ *
+ * \section intro_sec Introduction
+ *
+ * This is my documentation for my semester thesis AntWars in subject BI-PA2
+ * \n
+ * \author František Holý
+ * \date 8.6.2022
+ * \n
+ * \n
+ *
+ * \subsection what_sec What is it about
+ * This thesis is just about making possibly funny game to play about ants where player play against machine.
+ * \n
+ * I focused on making mainly 3 types of ants and base, took a little inspiration from one *ancient* online game named Age of War.
+ * There is this similarity with having one base on each left and right side of playing field and player just trained 3 types of troops to go against their enemy.
+ *
+ * \subsection controls_sec Controling the game
+ * Controlling the game is as simple as it can be
+ * \n
+ * \arg \c Loading or saving the games is in console, training troops on numpad (careful, you have to have focus on main app window) 1 to 3, which are melee, range and tank in this order.
+ * \arg \c Switching which base trains now is with arrows, right and left.
+ * \arg \c Arrows up and down are for controlling the speed of the game, up for faster game.
+ * \arg \c Last is the space, which pauses or resumes the game, depends in which state it was.
+ *
+ * \n
+ */
+
 /**
  * Starts with init, sets window and renderer.
  * 
@@ -120,11 +148,11 @@ void DrawCircle(int radius, int x, int y, SDL_Renderer* renderer)
 void PrintOut(Player& p, SDL_Renderer* renderer, SDL_Rect* rect)
 {
 	for (auto& x : p.GetStuff()) {
-		Point& temp = x.second->GetCoords();
+		Point& temp = x.second.ptr->GetCoords();
 
 		// decide which it is
 		//	-> for base make the shape rectangle
-		if (x.second->type == Base::type) {
+		if (x.second.ptr->type == Base::type) {
 			rect->x = temp.x * 10;
 			rect->y = temp.y * 10;
 			SDL_RenderFillRect(renderer, rect);

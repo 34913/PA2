@@ -40,17 +40,17 @@ std::ostream& operator<<(std::ostream& os, Player& obj)
 
 	os << obj.stuff.size() << std::endl;
 	for (auto& x : obj.stuff) {
-		os << *x.second << std::endl;
+		os << *x.second.ptr << std::endl;
 
-		if (x.second->type != Base::type)
+		if (x.second.ptr->type != Base::type)
 			continue;
-		if (obj.train[x.first].empty()) {
+		if (obj.bases[x.first].train.empty()) {
 			os << "-" << std::endl << std::endl;
 			continue;
 		}
 
-		os << '+' << obj.train[x.first].size() << std::endl;
-		for (auto& y : obj.train[x.first])
+		os << '+' << obj.bases[x.first].train.size() << std::endl;
+		for (auto& y : obj.bases[x.first].train)
 			os << *y << std::endl;
 	}
 
@@ -88,12 +88,16 @@ std::istream& operator>>(std::istream& is, Player& obj)
 		std::shared_ptr<Object> temp = obj.Create(t);
 		temp->Set(Point(x, y), h);
 
-		obj.stuff[temp->GetId()] = temp;
+		obj.stuff[temp->GetId()].ptr = temp;
+		obj.stuff[temp->GetId()].range = {};
+		obj.stuff[temp->GetId()].closest = {};
 
 		if (temp->type != Base::type)
 			continue;
 
-		obj.bases[temp->GetId()] = temp;
+		obj.bases[temp->GetId()].ptr = temp;
+		obj.bases[temp->GetId()].train = {};
+		obj.bases[temp->GetId()].ticking = {};
 
 		// if base
 		// read all the training ants in queue
@@ -103,7 +107,7 @@ std::istream& operator>>(std::istream& is, Player& obj)
 			continue;
 		is >> trainCount;
 
-		obj.ticking[temp->GetId()] = std::chrono::steady_clock::now();
+		obj.bases[temp->GetId()].ticking = std::chrono::steady_clock::now();
 		for(int i = 0; i < trainCount; i++) {
 
 			if (!(is >> t >> x >> y >> h))
@@ -117,7 +121,7 @@ std::istream& operator>>(std::istream& is, Player& obj)
 			}
 			temp->Set(Point(x, y), h);
 
-			obj.train[temp->GetId()].push_back(temp);
+			obj.bases[temp->GetId()].train.push_back(temp);
 		}
 	}
 
@@ -133,13 +137,13 @@ void Player::FindEnemy(Player& enemy)
 	for (auto& x : stuff) {
 		for (auto& enemyX : enemy.stuff) {
 
-			// basicly first try if the target is in range
+			// basicaly first try if the target is in range
 			// and add him in std::set in range based on the length from it
-			if (x.second->HasInRange(*enemyX.second, len))
-				range[x.first][len] = enemyX.second;
+			if (x.second.ptr->HasInRange(*enemyX.second.ptr, len))
+				x.second.range[len] = enemyX.second.ptr;
 			// if not, add him (again based on length) in std::set in closest
-			else if(x.second->type != Base::type)
-				closest[x.first][len] = enemyX.second;
+			else if (x.second.ptr->type != Base::type)
+				x.second.closest[len] = enemyX.second.ptr;
 
 		}
 	}
@@ -154,7 +158,7 @@ void Player::Input(Command& cmd)
 		auto it = bases.find(selectedBase);
 		if (it == bases.end()) {
 			it = bases.begin();
-			selectedBase = it->second->GetId();
+			selectedBase = it->second.ptr->GetId();
 			return;
 		}
 		if (cmd == Command::nextBase) {
@@ -167,65 +171,70 @@ void Player::Input(Command& cmd)
 				it = bases.end();
 			it--;
 		}
-		selectedBase = it->second->GetId();
+		selectedBase = it->second.ptr->GetId();
 	}
 	// training troops in selected base
 	else if (cmd == Command::trainMelee
 		|| cmd == Command::trainRange
 		|| cmd == Command::trainTank)
 	{
+		auto it = bases.find(selectedBase);
+
 		// exceptions if not selected base
-		if (bases.find(selectedBase) == bases.end())
+		if (it == bases.end())
 			throw std::invalid_argument("Not selected base where to train");
 		// full queue (just named like that, its list but i thought training queue
 		// list easier to implement
-		if (train[selectedBase].size() == 5)
+
+		if (it->second.train.size() == 5)
 			throw std::invalid_argument("Training queue is full");
 
-		// setting the start of train�ng time if empty
+		// setting the start of training time if empty
 		//	-> need to start it first
-		if (train[selectedBase].empty())
-			ticking[selectedBase] = std::chrono::steady_clock::now();
+		if (it->second.train.empty())
+			it->second.ticking = std::chrono::steady_clock::now();
 
 		// choosing the right to train
 		std::shared_ptr<Object> temp;
 		if (cmd == Command::trainMelee && golds.GetMoney() >= costs[MeleeAnt::type])
-		{
-			temp = std::make_shared<MeleeAnt>(MeleeAnt(Point(bases[selectedBase]->GetCoords())));
-		}
+			temp = std::make_shared<MeleeAnt>(MeleeAnt(Point(bases[selectedBase].ptr->GetCoords())));
 		else if (cmd == Command::trainRange && golds.GetMoney() >= costs[RangedAnt::type])
-		{
-			temp = std::make_shared<RangedAnt>(RangedAnt(Point(bases[selectedBase]->GetCoords())));
-		}
+			temp = std::make_shared<RangedAnt>(RangedAnt(Point(bases[selectedBase].ptr->GetCoords())));
 		else if(golds.GetMoney() >= costs[TankAnt::type])
-		{
-			temp = std::make_shared<TankAnt>(TankAnt(Point(bases[selectedBase]->GetCoords())));
-		}
-		train[selectedBase].push_back(temp);
+			temp = std::make_shared<TankAnt>(TankAnt(Point(bases[selectedBase].ptr->GetCoords())));
+
+		bases[selectedBase].train.push_back(temp);
 
 	}
 }
 
 void Player::Add(std::shared_ptr<Object> obj)
 {
-	stuff[obj->GetId()] = obj;
-	if (obj->type == Base::type) {
-		bases[obj->GetId()] = obj;
-		train[obj->GetId()] = {};
-	}
+
+	stuff[obj->GetId()].ptr = obj;
+	stuff[obj->GetId()].closest = {};
+	stuff[obj->GetId()].range = {};
+
+	if (obj->type != Base::type)
+		return;
+
+	bases[obj->GetId()].ptr = obj;
+	bases[obj->GetId()].train = {};
+	bases[obj->GetId()].ticking = {};
+	
 }
 
 void Player::PrintOut()
 {
 	for (auto& x : stuff) {
-		std::cout << *stuff[x.first] << std::endl;
+		std::cout << *x.second.ptr << std::endl;
 
 		std::cout << "range:" << std::endl;
-		for (auto& a : range[x.first])
+		for (auto& a : x.second.range)
 			std::cout << "   " << a.first << " - " << *a.second << std::endl;
 
 		std::cout << "closest:" << std::endl;
-		for (auto& a : closest[x.first])
+		for (auto& a : x.second.closest)
 			std::cout << "   " << a.first << " - " << *a.second << std::endl;
 	}
 	std::cout << std::endl << std::endl;
@@ -237,29 +246,35 @@ void Player::Actions()
 
 	// for cycle
 	auto itStuff = stuff.begin();
-	// for changing to either to move to closest or attack on someone in range
-	auto maps = &range;
+	if (itStuff == stuff.end())
+		return;
 
-	while (itStuff != stuff.end()) {
+	// for changing to either to move to closest or attack on someone in range
+	std::map<double, std::shared_ptr<Object>>* maps = &itStuff->second.range;
+
+	while (true) {
 		// if is alive, then find enemy
-		if (!itStuff->second->IsAlive()) {
+		if (!itStuff->second.ptr->IsAlive()) {
 			itStuff++;
+			if (itStuff == stuff.end())
+				break;
+			maps = &itStuff->second.range;
 			continue;
 		}
-		auto it = (*maps)[itStuff->first].begin();
+		auto it = maps->begin();
 
 		// determine who is the target (move/attack)
-		while (it != (*maps)[itStuff->first].end()) {
+		while (it != maps->end()) {
 			if (it->second->IsAlive())
 				break;
 			it++;
 		}
 
 		// if some target is found
-		if (it != (*maps)[itStuff->first].end()) {
+		if (it != maps->end()) {
 			// attacking part
-			if (maps == &range) {
-				(*itStuff->second).Attack(*it->second);
+			if (maps == &itStuff->second.range) {
+				(*itStuff->second.ptr).Attack(*it->second);
 				if (!it->second->IsAlive()) {
 
 					// adding money and points if killed
@@ -270,43 +285,50 @@ void Player::Actions()
 
 					points.AddExp(*it->second);
 				}
+				itStuff++;
+				if (itStuff == stuff.end())
+					break;
+				maps = &itStuff->second.range;
 			}
 			// moving part
 			else {
 				// might want to change this
 				// to move around the obstacle
-				((Ant&)(*itStuff->second)).Move(it->second->GetCoords());
-				maps = &range;
+				((Ant&)(*itStuff->second.ptr)).Move(it->second->GetCoords());
+
+				itStuff++;
+				if (itStuff == stuff.end())
+					break;
+				maps = &itStuff->second.range;
 			}
 		}
 		// switch the polarity
 		// -> if no target to attack in range, then move to closest
 		// (need to work on that one too, to not stuck them on one place)
 		else {
-			if (maps == &range && itStuff->second->type != Base::type) {
-				maps = &closest;
-				continue;
+			if (maps == &itStuff->second.range && itStuff->second.ptr->type != Base::type) {
+				maps = &itStuff->second.closest;
 			}
-			else
-				maps = &range;
+			else {
+				itStuff++;
+				if (itStuff == stuff.end())
+					break;
+				maps = &itStuff->second.range;
+			}
 		}
-
-		// next only if checked range (and attacked)
-		// or also checked closest, only then move on
-		itStuff++;
 	}
 
 }
 
 void Player::CheckDead()
 {
-	range.clear();
-	closest.clear();
-
 	auto it = stuff.begin();
 	while(it != stuff.end()) {
 
-		auto& ptr = it->second;
+		it->second.closest.clear();
+		it->second.range.clear();
+
+		auto& ptr = it->second.ptr;
 		it++;
 
 		if (ptr->IsAlive())
@@ -316,9 +338,6 @@ void Player::CheckDead()
 			bases.erase(ptr->GetId());
 			if (selectedBase == ptr->GetId())
 				selectedBase = -1;
-			
-			ticking.erase(ptr->GetId());
-			train.erase(ptr->GetId());
 		}
 
 		stuff.erase(ptr->GetId());
@@ -330,6 +349,8 @@ void Player::CheckDead()
 		costs.Up();
 		points.Up();
 
+		points.Up();
+
 		// todo
 		// need to raise the stats of objects
 	}
@@ -339,23 +360,32 @@ void Player::CheckDead()
 void Player::CheckTrain()
 {
 	auto end = std::chrono::steady_clock::now();
-	std::chrono::duration<double> diff;
+	std::chrono::milliseconds millis;
 
-	for (auto& x : train) {
-		if (train[x.first].empty())
+	for (auto& x : bases) {
+		if (x.second.train.empty())
 			continue;
 
-		diff = end - ticking[x.first];
+		std::shared_ptr<Object> temp = x.second.train.front();
 
-		std::shared_ptr<Object> temp = train[x.first].front();
-
-		if (diff.count() < (double)times[*temp] / 1000)
+		millis = std::chrono::duration_cast<std::chrono::milliseconds>(end - x.second.ticking);
+		if (millis.count() < times[*temp])
 			continue;
 
 		Add(temp);
-		train[x.first].pop_front();
-		ticking[x.first] = end;
+		x.second.train.pop_front();
+		x.second.ticking = end;
 	}
+}
+
+void Player::StopTrain()
+{
+
+}
+
+void Player::ResumeTrain()
+{
+
 }
 
 bool Player::CheckBases()
@@ -383,26 +413,31 @@ Base& Player::GetSelected()
 	if(bases.find(selectedBase) == bases.end())
 		throw std::invalid_argument("Not selected base");
 
-	return (Base&)(*bases[selectedBase]);
+	return (Base&)(*bases[selectedBase].ptr);
 }
 
-std::list<std::shared_ptr<Object>>& Player::GetTrain()
+BaseType& Player::GetBase(uint32_t id)
 {
-	if (bases.find(selectedBase) == bases.end())
-		throw std::invalid_argument("Not selected base");
-
-	return train[selectedBase];
+	auto it = bases.find(id);
+	if (it == bases.end())
+		throw std::invalid_argument("Not found in bases");
+	return it->second;
 }
 
-std::chrono::steady_clock::time_point& Player::GetTicking()
+std::unordered_map<uint32_t, BaseType>& Player::GetBase()
 {
-	if (bases.find(selectedBase) == bases.end())
-		throw std::invalid_argument("Not selected base");
-
-	return ticking[selectedBase];
+	return bases;
 }
 
-std::unordered_map<uint32_t, std::shared_ptr<Object>>& Player::GetStuff()
+StuffType& Player::GetStuff(uint32_t id)
+{
+	auto it = stuff.find(id);
+	if (it == stuff.end())
+		throw std::invalid_argument("Not found in stuff");
+	return it->second;
+}
+
+std::unordered_map<uint32_t, StuffType>& Player::GetStuff()
 {
 	return stuff;
 }

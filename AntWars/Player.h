@@ -29,26 +29,35 @@
 
 #include <fstream>
 
+typedef struct BaseStruct
+{
+
+	std::shared_ptr<Object> ptr;
+	std::list<std::shared_ptr<Object>> train;
+	std::chrono::steady_clock::time_point ticking;
+
+} BaseType;
+typedef struct StuffStruct
+{
+
+	std::shared_ptr<Object> ptr;
+	std::map<double, std::shared_ptr<Object>> range;
+	std::map<double, std::shared_ptr<Object>> closest;
+
+} StuffType;
+
 class Player
 {
 protected:
 
 	std::string name;
 
+	std::unordered_map<uint32_t, BaseType> bases;
+	std::unordered_map<uint32_t, StuffType> stuff;
+
 	// selected base uniq id
 	// used for training the troops to one selected base based on this uniq id
 	uint32_t selectedBase = -1;
-	
-	// saving all the bases of this player
-	std::map<uint32_t, std::shared_ptr<Object>> bases;
-
-	// saving all the objects of this particular player
-	std::unordered_map<uint32_t, std::shared_ptr<Object>> stuff;
-
-	// saving the in range objects
-	std::unordered_map<uint32_t, std::map<double, std::shared_ptr<Object>>> range;
-	// saving the closest array of object to certain id of object
-	std::unordered_map<uint32_t, std::map<double, std::shared_ptr<Object>>> closest;
 	
 	// all the progressing info
 	// level, money, troops costs and training time
@@ -60,9 +69,6 @@ protected:
 	MoneyNeeded costs;
 
 	TrainingTime times;
-
-	std::unordered_map<uint32_t, std::list<std::shared_ptr<Object>>> train;
-	std::unordered_map<uint32_t, std::chrono::steady_clock::time_point> ticking;
 
 	std::shared_ptr<Object> Create(int type);
 
@@ -128,6 +134,10 @@ public:
 	 */
 	void CheckTrain();
 
+	void StopTrain();
+
+	void ResumeTrain();
+
 	bool CheckBases();
 
 	// getters
@@ -160,26 +170,13 @@ public:
 	 */
 	Base& GetSelected();
 
-	/**
-	 * Seleected base training list getter.
-	 *
-	 * \return reference to this list
-	 */
-	std::list<std::shared_ptr<Object>>& GetTrain();
+	BaseType& GetBase(uint32_t id);
 
-	/**
-	 * Ticking time of selected base getter
-	 *
-	 * \return reference to this time point
-	 */
-	std::chrono::steady_clock::time_point& GetTicking();
+	std::unordered_map<uint32_t, BaseType>& GetBase();
 
-	/**
-	 * Stuff getter.
-	 *
-	 * \return all stuff
-	 */
-	std::unordered_map<uint32_t, std::shared_ptr<Object>>& GetStuff();
+	StuffType& GetStuff(uint32_t id);
+
+	std::unordered_map<uint32_t, StuffType>& GetStuff();
 
 };
 
