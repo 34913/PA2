@@ -115,12 +115,20 @@ bool Game::Check()
 
 void Game::RunStop()
 {
-	running = !running;
+	RunStop((cmd)(!running));
 }
 
 void Game::RunStop(cmd command)
 {
-	running = (bool)command;
+	running = command;
+	if (command) {
+		p1.ResumeTrain();
+		p2.ResumeTrain();
+	}
+	else {
+		p1.StopTrain();
+		p2.StopTrain();
+	}
 }
 
 void Game::Faster()
