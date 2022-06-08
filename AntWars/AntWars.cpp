@@ -81,8 +81,8 @@ int begin(SDL_Window*& MainWindow, SDL_Renderer*& renderer, Map& show)
 		"AntWars",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		(int)show.GetWidth() * 10 + 300,
-		(int)show.GetHeight() * 10,
+		show.GetWidth() * 10 + 300,
+		show.GetHeight() * 10,
 		0
 	);
 
@@ -171,7 +171,7 @@ int Load(Game& g)
 	const std::string quit = "quit";
 
 	// possible commands
-	std::cout << "\"" + open + "\" to open game save" << std::endl
+	std::cout << "\"" + open + "\" to open game save, enter name after" << std::endl
 		<< "\"" + quit + "\" to leave" << std::endl << std::endl;
 
 	std::string com;
@@ -194,15 +194,14 @@ int Load(Game& g)
 
 		if (com == open) {
 			// load and then check if it suits one of known save files as printed
-			std::cout << "Name of save: ";
 			std::cin >> com;
 
 			int i;
-			for (i = 0; i < saves.size(); i++) {
+			for (i = 0; i < (int)saves.size(); i++) {
 				if (saves[i].substr(1) == com)
 					break;
 			}
-			if (i == saves.size()) {
+			if (i == (int)saves.size()) {
 				std::cout << "Save named " << com << " does not exists" << std::endl << std::endl;
 				continue;
 			}
@@ -232,28 +231,25 @@ int Load(Game& g)
 /**
  * Saves the ongoing game in save file.
  *
- * \param g Game red
+ * \param g Game ref
  * \return 0 if succeeded
  */
-int Save(Game& g, bool skip = true)
+int Save(Game& g)
 {
 	const std::string save = "save";
 	const std::string quit = "quit";
 	std::string com;
 
-	if (skip) {
-		std::cout << "\"" + save + "\" to open game save" << std::endl
-			<< "\"" + quit + "\" to leave" << std::endl << std::endl;
-	}
+	std::cout << "\"" + save + "\" to save game, enter name after" << std::endl
+		<< "\"" + quit + "\" to leave" << std::endl << std::endl;
 
-	while (skip) {
+	while (true) {
 
 		std::cout << ":";
 		std::cin >> com;
 
 		if (com == save) {
 
-			std::cout << "Name of save: ";
 			std::cin >> com;
 
 			if (com.length() > 8) {
@@ -418,14 +414,19 @@ int main(int argc, char** args)
 
 	SDL_Event* event = new SDL_Event();
 
-	//
-	// main cycle
-	//
-
+	// used to printout ants, smalled then bases
 	SDL_Rect* antRect = new SDL_Rect();
 	antRect->w = antRect->h = 10;
 
-	//SDL_Surface* Solid = TTF_RenderText_Solid(MyFont, "Solid", *RedColor);
+	// used to printout bases, slightly bigger
+	/*
+	SDL_Rect* baseRect = new SDL_Rect();
+	baseRect->w = baseRect->h = 30;
+	*/
+
+	//
+	// main cycle
+	//
 
 	while(g.Check()) {
 		// set the time point
@@ -471,8 +472,8 @@ int main(int argc, char** args)
 		// borders
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		SDL_RenderDrawRect(renderer, antRect);
-		for (int y = 0; y < (int)g.show.GetHeight(); y++) {
-			for (int x = 0; x < (int)g.show.GetWidth(); x++) {
+		for (int y = 0; y < g.show.GetHeight(); y++) {
+			for (int x = 0; x < g.show.GetWidth(); x++) {
 
 				if (g.show[y][x] != Map::WALL)
 					continue;
@@ -493,7 +494,7 @@ int main(int argc, char** args)
 
 	delete antRect;
 
-	std::cout << "konec" << std::endl << g.p1.CheckBases() << " " << g.p2.CheckBases() << std::endl;
+	std::cout << "konec" << std::endl;// << g.p1.CheckBases() << " " << g.p2.CheckBases() << std::endl;
 
 	return 0;
 }
