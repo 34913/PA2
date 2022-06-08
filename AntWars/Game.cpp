@@ -1,5 +1,45 @@
 #include "Game.h"
 
+bool Game::CheckMap()
+{
+	// cant stand on each other or in the wall
+	//	-> or ouside ofc
+	// cant be stucked in base, no problem with that, but it must be their base, not in enemy
+
+	for (auto& x : p1.GetStuff()) {
+		Point& temp = x.second.ptr->GetCoords();
+
+		if (temp.x < 0 || temp.x >= show.GetWidth()
+			|| temp.y < 0 || temp.y >= show.GetHeight())
+			return true;
+
+		if (show[temp.y][temp.x] != Map::EMPTY)
+			return true;
+
+		for (auto& y : p2.GetBase()) {
+			if (y.second.ptr->GetCoords() == temp)
+				return true;
+		}
+	}
+
+	for (auto& x : p2.GetStuff()) {
+		Point& temp = x.second.ptr->GetCoords();
+
+		if (temp.x < 0 || temp.x > show.GetWidth()
+			|| temp.y < 0 || temp.y > show.GetHeight())
+			return true;
+
+		if (show[temp.y][temp.x] != Map::EMPTY)
+			return true;
+
+		for (auto& y : p1.GetBase()) {
+			if (y.second.ptr->GetCoords() == temp)
+				return true;
+		}
+	}
+	return false;
+}
+
 Game::Game(std::string dir, int pause)
 	:pause(pause),
 	low(pause / 10),
@@ -10,38 +50,6 @@ Game::Game(std::string dir, int pause)
 
 int Game::Load(std::string saveName)
 {
-	//p1.Add(std::make_shared<RangedAnt>(RangedAnt(Point(57, 2))));
-	//p1.Add(std::make_shared<Base>(Base(Point(2, 2))));
-
-	//
-
-	//p2.Add(std::make_shared<RangedAnt>(RangedAnt(Point(80, 70))));
-	//p2.Add(std::make_shared<TankAnt>(TankAnt(Point(2, 47))));
-	//p2.Add(std::make_shared<Base>(Base(Point(57, 47))));
-
-	//p2.Add(TankAnt(Point(11, 12)));
-	//p2.Add(TankAnt(Point(11, 10)));
-
-	/*
-	auto a = RangedAnt(Point(15, 15));
-	auto b = RangedAnt(Point(15, 15));
-	b.Attack(a);
-
-	Object& temp = a;
-	std::cout << typeid(temp).name() << '\n';
-
-	auto smh = new RangedAnt();
-	std::shared_ptr<Object&> neco;
-	std::cout << typeid(*neco).name() << '\n';
-
-	(*neco).Attack(b);
-
-	//
-
-	p1.Input(Command::nextBase);
-	p1.Input(Command::trainMelee);
-	*/
-
 	std::ifstream myFileI;
 	std::string path;
 
@@ -62,8 +70,7 @@ int Game::Load(std::string saveName)
 		myFileI >> p1 >> p2;
 	}
 	catch (const std::invalid_argument& e) {
-		std::cout << e.what() << std::endl;
-		return -1;
+		throw e;
 	}
 	myFileI.close();
 
@@ -82,10 +89,13 @@ int Game::Load(std::string saveName)
 		myFileI >> show;
 	}
 	catch (const std::invalid_argument& e) {
-		std::cout << e.what() << std::endl;
-		return -1;
+		throw e;
 	}
 	myFileI.close();
+
+	if (CheckMap()) {
+		throw std::invalid_argument("This save cant be used, the players and map does not comply, must have been modified");
+	}
 
 	loaded = true;
 

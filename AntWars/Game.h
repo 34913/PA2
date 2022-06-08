@@ -35,6 +35,18 @@ class Game
 	const int rise;
 	std::string dir;
 
+	/**
+	 * Checks if the map is okay with ants and bases in position getted from file.
+	 * error is
+	 *	-> being ouside the bounds of playing field
+	 *	-> being inside wall
+	 *	-> being inside Ant
+	 *	-> being inside enemy Base, yours can be, as it is in real live
+	 * 
+	 * \return true if error occurred
+	 */
+	bool CheckMap();
+
 public:
 
 	enum cmd {
