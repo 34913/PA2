@@ -179,6 +179,13 @@ public:
 	// getters
 
 	/**
+	 * Name getter.
+	 * 
+	 * \return std::string with name
+	 */
+	const std::string& GetName();
+
+	/**
 	 * Golds getter.
 	 * 
 	 * \return golds of ref Money

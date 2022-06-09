@@ -16,8 +16,6 @@ void AutoPlayer::Input()
 	auto now = std::chrono::steady_clock::now();
 	std::chrono::milliseconds millis;
 
-	std::cout << golds.GetMoney() << std::endl;
-
 	for (auto& x : bases) {
 
 		if (!x.second.train.empty())

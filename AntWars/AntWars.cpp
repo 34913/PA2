@@ -551,5 +551,13 @@ int main(int argc, char** args)
 
 	std::cout << "End of game" << std::endl;
 
+	std::cout << std::endl << std::endl;
+	if (g.p1.CheckBases() && g.p2.CheckBases())
+		std::cout << "Its a tie, nobody wins" << std::endl;
+	else if (g.p1.CheckBases())
+		std::cout << "Player " << g.p2.GetName() << " wins" << std::endl;
+	else
+		std::cout << "Player " << g.p1.GetName() << " wins" << std::endl;
+
 	return 0;
 }

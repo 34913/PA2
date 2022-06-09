@@ -449,6 +449,11 @@ bool Player::CheckBases()
 	return bases.empty();
 }
 
+const std::string& Player::GetName()
+{
+	return name;
+}
+
 Money& Player::GetGolds()
 {
 	return golds;
