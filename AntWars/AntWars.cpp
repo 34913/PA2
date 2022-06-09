@@ -1,13 +1,7 @@
 ﻿// AntWars.cpp : Tento soubor obsahuje funkci main. Provádění programu se tam zahajuje a ukončuje.
 //
 
-#ifndef _WIN32
 #include <SDL2/SDL.h>
-#include <SDL2/SDL_pixels.h>
-#else
-#include <SDL.h>
-#include <SDL_pixels.h>
-#endif
 
 #include <chrono>
 #include <iostream>
@@ -81,7 +75,7 @@ int begin(SDL_Window*& MainWindow, SDL_Renderer*& renderer, Map& show)
 		"AntWars",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		show.GetWidth() * 10/* + 300*/,
+		show.GetWidth() * 10,
 		show.GetHeight() * 10,
 		0
 	);
@@ -379,7 +373,6 @@ int main(int argc, char** args)
 	Game g("examples");
 
 	// set the random seed
-	// some random crap, determined by smashing fingers on num pad
 	srand((unsigned long)time(NULL) + (rand() % 37));
 
 	// load assets
@@ -428,7 +421,9 @@ int main(int argc, char** args)
 	// main cycle
 	//
 
-	while(g.Check()) {
+	bool exit = false;
+
+	while(g.Check() && !exit) {
 		// set the time point
 		now = std::chrono::steady_clock::now();
 
@@ -461,8 +456,7 @@ int main(int argc, char** args)
 
 		// event handling
 		// like pressed buttons
-		if (Handle(g, event) == 1)
-			break;
+		exit = Handle(g, event);
 		
 		// background
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -480,52 +474,11 @@ int main(int argc, char** args)
 		
 		// selected
 		if (g.p1.IsSelected()) {
-
 			// draw rectangle around it
 			antRect->x = g.p1.GetSelected().GetCoords().x * 10;
 			antRect->y = g.p1.GetSelected().GetCoords().y * 10;
 
 			SDL_RenderDrawRect(renderer, antRect);
-
-			/*
-			auto& base = g.p1.GetBase(g.p1.GetSelected().GetId());
-			if (!base.train.empty()) {
-
-				// this counts the time between the training started and now
-				// it depends on if the game is running, if yes, its with now()
-				//	-> if not, it just counts it with Player::time
-				double pixels = 50;
-				pixels /= g.p1.GetTimes()[base.train.front()->type.code];
-
-				if (g.GetRunning()) {
-					millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - base.ticking);
-					pixels *= millis.count();
-				}
-				else {
-					millis = std::chrono::duration_cast<std::chrono::milliseconds>(g.p1.GetLastTime() - base.ticking);
-					pixels *= millis.count();
-				}
-
-				// set the sizes
-				antRect->x = push.x;
-				antRect->y = push.y;
-
-				antRect->w = (int)pixels;
-				antRect->h = 20;
-
-				// print it
-				SDL_RenderFillRect(renderer, antRect);
-
-				antRect->w = 50;
-
-				// border around
-				SDL_RenderDrawRect(renderer, antRect);
-
-				// reset
-				antRect->h = 10;
-				antRect->w = 10;
-			}
-			*/
 		}
 
 		// borders
@@ -551,15 +504,19 @@ int main(int argc, char** args)
 
 	delete antRect;
 
-	std::cout << "End of game" << std::endl;
-
-	std::cout << std::endl << std::endl;
-	if (g.p1.CheckBases() && g.p2.CheckBases())
-		std::cout << "Its a tie, nobody wins" << std::endl;
-	else if (g.p1.CheckBases())
-		std::cout << "Player " << g.p2.GetName() << " wins" << std::endl;
-	else
-		std::cout << "Player " << g.p1.GetName() << " wins" << std::endl;
+	if(!exit) {
+		std::cout << "End of game" << std::endl;
+	
+		std::cout << std::endl;
+		if (g.p1.CheckBases() && g.p2.CheckBases())
+			std::cout << "Its a tie, nobody wins" << std::endl;
+		else if (g.p1.CheckBases())
+			std::cout << "Player " << g.p2.GetName() << " wins" << std::endl;
+		else
+			std::cout << "Player " << g.p1.GetName() << " wins" << std::endl;
+	}
+	else 
+		std::cout << "Exited" << std::endl;
 
 	return 0;
 }

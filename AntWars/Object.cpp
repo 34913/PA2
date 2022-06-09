@@ -1,5 +1,4 @@
  #include "Object.h"
-#include <iostream>
 
 Object::Object(const Point& coords, const Stats& values, const TypeCode& type)
 	:coords(coords),
