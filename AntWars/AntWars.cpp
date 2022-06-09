@@ -81,7 +81,7 @@ int begin(SDL_Window*& MainWindow, SDL_Renderer*& renderer, Map& show)
 		"AntWars",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		show.GetWidth() * 10 + 300,
+		show.GetWidth() * 10/* + 300*/,
 		show.GetHeight() * 10,
 		0
 	);
@@ -487,6 +487,7 @@ int main(int argc, char** args)
 
 			SDL_RenderDrawRect(renderer, antRect);
 
+			/*
 			auto& base = g.p1.GetBase(g.p1.GetSelected().GetId());
 			if (!base.train.empty()) {
 
@@ -524,6 +525,7 @@ int main(int argc, char** args)
 				antRect->h = 10;
 				antRect->w = 10;
 			}
+			*/
 		}
 
 		// borders

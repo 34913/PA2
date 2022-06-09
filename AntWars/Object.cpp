@@ -1,4 +1,5 @@
  #include "Object.h"
+#include <iostream>
 
 Object::Object(const Point& coords, const Stats& values, const TypeCode& type)
 	:coords(coords),
@@ -54,6 +55,10 @@ bool Object::HasInRange(Object& obj, double& len)
 
 bool Object::Attack(Object& obj)
 {
+	auto now = std::chrono::steady_clock::now();
+	if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last).count() < interval)
+		return false;
+	last = now;
 	return obj.Defend(*this);
 }
 

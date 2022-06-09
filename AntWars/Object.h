@@ -9,6 +9,8 @@
 #include <math.h>
 #include <ostream>
 
+#include <chrono>
+
 class Object
 {
 protected:
@@ -20,6 +22,9 @@ protected:
 	Stats values;
 
 	const uint32_t id = readyID.getLowest();
+
+	const int interval = 500;
+	std::chrono::steady_clock::time_point last = std::chrono::steady_clock::now();
 
 public:
 

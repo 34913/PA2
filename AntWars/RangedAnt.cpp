@@ -3,7 +3,7 @@
 TypeCode RangedAnt::type(2);
 
 RangedAnt::RangedAnt(Point start)
-	:Ant(start, Stats(2.0, 10.0, 10.0), RangedAnt::type),
+	:Ant(start, Stats(2.0, 10.0, 20.0), RangedAnt::type),
 	worst(31.24)
 {}
 
@@ -15,7 +15,6 @@ bool RangedAnt::Attack(Object& obj)
 	if (len > half) {
 		double percentil = 100 + (worst / (values.range - half)) * (half - len);
 
-		srand((unsigned int)time(NULL) + rand());
 		double chance = (rand() % 100) + ((double)(rand() % 101) / 100);
 
 		if (percentil < chance)

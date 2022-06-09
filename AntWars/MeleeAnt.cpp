@@ -3,7 +3,7 @@
 TypeCode MeleeAnt::type(3);
 
 MeleeAnt::MeleeAnt(Point start)
-	:Ant(start, Stats(3.0, 1.5, 15.0), MeleeAnt::type)
+	:Ant(start, Stats(3.0, 1.5, 30.0), MeleeAnt::type)
 {}
 
 bool MeleeAnt::Attack(Object& obj)
