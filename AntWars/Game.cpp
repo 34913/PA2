@@ -168,11 +168,6 @@ int Game::Play()
 
 	//
 
-	p1.CheckTrain();
-	p2.CheckTrain();
-
-	//
-
 	return p1.CheckBases() || p2.CheckBases();
 }
 
