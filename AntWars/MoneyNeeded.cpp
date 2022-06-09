@@ -10,6 +10,11 @@ uint16_t MoneyNeeded::operator[](TypeCode& type)
 	return amount[type.code];
 }
 
+uint16_t MoneyNeeded::operator[](int code)
+{
+	return amount[code];
+}
+
 std::ostream& operator<<(std::ostream& os, MoneyNeeded& obj)
 {
 	obj.Print(os);

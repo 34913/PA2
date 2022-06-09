@@ -42,6 +42,8 @@ public:
 
 	uint16_t operator[](TypeCode& type);
 
+	uint16_t operator[](int code);
+
 	friend std::ostream& operator << (std::ostream& os, MoneyNeeded& obj);
 
 	friend std::istream& operator >> (std::istream& is, MoneyNeeded& obj);
