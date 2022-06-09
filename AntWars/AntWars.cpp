@@ -418,11 +418,7 @@ int main(int argc, char** args)
 	SDL_Rect* antRect = new SDL_Rect();
 	antRect->w = antRect->h = 10;
 
-	// used to printout bases, slightly bigger
-	/*
-	SDL_Rect* baseRect = new SDL_Rect();
-	baseRect->w = baseRect->h = 30;
-	*/
+	Point push(g.show.GetWidth() * 10 + 50, 150);
 
 	//
 	// main cycle
@@ -431,6 +427,13 @@ int main(int argc, char** args)
 	while(g.Check()) {
 		// set the time point
 		now = std::chrono::steady_clock::now();
+
+		if (g.GetRunning()) {
+			g.p1.CheckTrain();
+			g.p2.CheckTrain();
+
+			g.p2.Input();
+		}
 
 		// some action over specified amount of time
 		// do something, like move all the ants
@@ -456,7 +459,7 @@ int main(int argc, char** args)
 		// like pressed buttons
 		if (Handle(g, event) == 1)
 			break;
-
+		
 		// background
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
 		SDL_RenderClear(renderer);
@@ -469,9 +472,50 @@ int main(int argc, char** args)
 		SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
 		PrintOut(g.p2, renderer, antRect);
 
-		// borders
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		SDL_RenderDrawRect(renderer, antRect);
+		
+		// selected
+		if (g.p1.IsSelected()) {
+
+			// draw rectangle around it
+			antRect->x = g.p1.GetSelected().GetCoords().x * 10;
+			antRect->y = g.p1.GetSelected().GetCoords().y * 10;
+
+			SDL_RenderDrawRect(renderer, antRect);
+
+			auto& base = g.p1.GetBase(g.p1.GetSelected().GetId());
+			if (!base.train.empty()) {
+
+				double pixels = 50;
+				pixels /= g.p1.GetTimes()[base.train.front()->type.code];
+
+				if (g.GetRunning()) {
+					millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - base.ticking);
+					pixels *= millis.count();
+				}
+				else {
+					millis = std::chrono::duration_cast<std::chrono::milliseconds>(g.p1.time - base.ticking);
+					pixels *= millis.count();
+				}
+
+				antRect->x = push.x;
+				antRect->y = push.y;
+
+				antRect->w = pixels;
+				antRect->h = 20;
+
+				SDL_RenderFillRect(renderer, antRect);
+
+				antRect->w = 50;
+
+				SDL_RenderDrawRect(renderer, antRect);
+
+				antRect->h = 10;
+				antRect->w = 10;
+			}
+		}
+
+		// borders
 		for (int y = 0; y < g.show.GetHeight(); y++) {
 			for (int x = 0; x < g.show.GetWidth(); x++) {
 
@@ -494,7 +538,7 @@ int main(int argc, char** args)
 
 	delete antRect;
 
-	std::cout << "konec" << std::endl;// << g.p1.CheckBases() << " " << g.p2.CheckBases() << std::endl;
+	std::cout << "End of game" << std::endl;
 
 	return 0;
 }
