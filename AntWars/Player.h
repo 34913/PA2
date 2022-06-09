@@ -37,7 +37,6 @@
  */
 typedef struct BaseStruct
 {
-
 	std::shared_ptr<Object> ptr;
 	std::list<std::shared_ptr<Object>> train;
 	std::chrono::steady_clock::time_point ticking;
@@ -50,7 +49,6 @@ typedef struct BaseStruct
  */
 typedef struct StuffStruct
 {
-
 	std::shared_ptr<Object> ptr;
 	std::map<double, std::shared_ptr<Object>> range;
 	std::map<double, std::shared_ptr<Object>> closest;
@@ -91,11 +89,11 @@ protected:
 	 */
 	std::shared_ptr<Object> Create(int type);
 
+public:
+
 	// saves the time in case of pause of the game
 	// needs to be done, otherwise trains without control on stop of the game
 	std::chrono::steady_clock::time_point time;
-
-public:
 
 	// cons/destructor
 
@@ -142,6 +140,7 @@ public:
 	/**
 	 * ALl the action all objects has to do.
 	 * 
+	 * \param show Map ref to move ants
 	 */
 	void Actions(Map& show);
 
@@ -182,28 +181,42 @@ public:
 	/**
 	 * Golds getter.
 	 * 
-	 * \return golds of object Money
+	 * \return golds of ref Money
 	 */
 	Money& GetGolds();
 	
 	/**
 	 * Level getter.
 	 * 
-	 * \return points of object Level
+	 * \return points of ref Level
 	 */
 	Level& GetLevel();
 
 	/**
 	 * Costs getter.
 	 * 
-	 * \return costs of object MoneyNeeded
+	 * \return costs of ref MoneyNeeded
 	 */
 	MoneyNeeded& GetCosts();
+	
+	/**
+	 * Training times getter.
+	 *
+	 * \return tiems of ref MoneyNeeded
+	 */
+	TrainingTime& GetTimes();
 
 	/**
-	 * Selected base getter.
+	 * Checks if is some base selected.
 	 * 
-	 * \return reference to selected base
+	 * \return true if some base is selected
+	 */
+	bool IsSelected();
+
+	/**
+	 * Selected base getter
+	 * 
+	 * \return base ref
 	 */
 	Base& GetSelected();
 

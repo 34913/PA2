@@ -205,11 +205,12 @@ void Player::Input(Command& cmd)
 			temp = std::make_shared<MeleeAnt>(MeleeAnt(Point(bases[selectedBase].ptr->GetCoords())));
 		else if (cmd == Command::trainRange && golds.GetMoney() >= costs[RangedAnt::type])
 			temp = std::make_shared<RangedAnt>(RangedAnt(Point(bases[selectedBase].ptr->GetCoords())));
-		else if(golds.GetMoney() >= costs[TankAnt::type])
+		else if (golds.GetMoney() >= costs[TankAnt::type])
 			temp = std::make_shared<TankAnt>(TankAnt(Point(bases[selectedBase].ptr->GetCoords())));
+		else
+			throw std::invalid_argument("Not enough money");
 
 		bases[selectedBase].train.push_back(temp);
-
 	}
 }
 
@@ -404,9 +405,6 @@ void Player::CheckDead()
 		points.Up();
 
 		points.Up();
-
-		// todo
-		// need to raise the stats of objects
 	}
 
 }
@@ -462,6 +460,16 @@ Level& Player::GetLevel()
 MoneyNeeded& Player::GetCosts()
 {
 	return costs;
+}
+
+TrainingTime& Player::GetTimes()
+{
+	return times;
+}
+
+bool Player::IsSelected()
+{
+	return bases.find(selectedBase) != bases.end();
 }
 
 Base& Player::GetSelected()
