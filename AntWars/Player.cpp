@@ -211,6 +211,8 @@ void Player::Input(Command& cmd)
 			throw std::invalid_argument("Not enough money");
 
 		bases[selectedBase].train.push_back(temp);
+
+		golds.RemoveMoney(costs[temp->type.code]);
 	}
 }
 

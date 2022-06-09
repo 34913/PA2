@@ -9,6 +9,11 @@ void Money::AddMoney(Object& obj)
 	golds += amount[obj.type.code];
 }
 
+void Money::RemoveMoney(uint16_t cost)
+{
+	golds -= cost;
+}
+
 uint32_t Money::GetMoney()
 {
 	return golds;

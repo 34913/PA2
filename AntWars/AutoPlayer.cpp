@@ -16,6 +16,8 @@ void AutoPlayer::Input()
 	auto now = std::chrono::steady_clock::now();
 	std::chrono::milliseconds millis;
 
+	std::cout << golds.GetMoney() << std::endl;
+
 	for (auto& x : bases) {
 
 		if (!x.second.train.empty())
@@ -29,7 +31,7 @@ void AutoPlayer::Input()
 			if (millis.count() > tankLimit) {
 				Player::Input(Command::trainTank);
 				lastTank = now;
-			
+
 				continue;
 			}
 		}
@@ -37,7 +39,7 @@ void AutoPlayer::Input()
 			millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastRanged);
 
 			if (millis.count() > rangedLimit) {
-				Player::Input(Command::trainTank);
+				Player::Input(Command::trainRange);
 				lastRanged = now;
 
 				continue;
@@ -47,7 +49,7 @@ void AutoPlayer::Input()
 			millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastMelee);
 
 			if (millis.count() > meleeLimit) {
-				Player::Input(Command::trainTank);
+				Player::Input(Command::trainMelee);
 				lastMelee = now;
 
 				continue;

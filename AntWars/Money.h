@@ -30,6 +30,13 @@ public:
 	void AddMoney(Object& obj);
 
 	/**
+	 * Removes money base on type of given obj.
+	 * 
+	 * \param obj to be deducted money from
+	 */
+	void RemoveMoney(uint16_t cost);
+
+	/**
 	 * Amount of money.
 	 * 
 	 * \return golds

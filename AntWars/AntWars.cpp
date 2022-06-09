@@ -252,6 +252,8 @@ int Save(Game& g)
 
 			std::cin >> com;
 
+			// saves under given name, needs to be alphanumeric and max 8 characters long
+			//	-> to solve problems with strange names longer than something
 			if (com.length() > 8) {
 				std::cout << "Try to make it shorter (max 8 characters)" << std::endl;
 				continue;
@@ -268,6 +270,7 @@ int Save(Game& g)
 				continue;
 			}
 
+			// cant open, already exists atc...
 			try {
 				g.Save(com);
 			}
@@ -305,6 +308,7 @@ int Handle(Game& g, SDL_Event* event)
 		if (event->type == SDL_QUIT) {
 			return 1;
 		}
+		// to track ctrl pressed
 		SDL_Keymod mod = SDL_GetModState();
 
 		// keys
