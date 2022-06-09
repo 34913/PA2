@@ -89,11 +89,11 @@ protected:
 	 */
 	std::shared_ptr<Object> Create(int type);
 
-public:
-
 	// saves the time in case of pause of the game
 	// needs to be done, otherwise trains without control on stop of the game
-	std::chrono::steady_clock::time_point time;
+	std::chrono::steady_clock::time_point lastTime;
+
+public:
 
 	// cons/destructor
 
@@ -227,6 +227,8 @@ public:
 	StuffType& GetStuff(uint32_t id);
 
 	std::unordered_map<uint32_t, StuffType>& GetStuff();
+
+	std::chrono::steady_clock::time_point& GetLastTime();
 
 };
 

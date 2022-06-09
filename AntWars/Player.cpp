@@ -432,14 +432,14 @@ void Player::CheckTrain()
 
 void Player::StopTrain()
 {
-	time = std::chrono::steady_clock::now();
+	lastTime = std::chrono::steady_clock::now();
 }
 
 void Player::ResumeTrain()
 {
 	auto temp = std::chrono::steady_clock::now();
 	for (auto& x : bases)
-		x.second.ticking = temp - time + x.second.ticking;
+		x.second.ticking = temp - lastTime + x.second.ticking;
 }
 
 bool Player::CheckBases()
@@ -504,4 +504,9 @@ StuffType& Player::GetStuff(uint32_t id)
 std::unordered_map<uint32_t, StuffType>& Player::GetStuff()
 {
 	return stuff;
+}
+
+std::chrono::steady_clock::time_point& Player::GetLastTime()
+{
+	return lastTime;
 }

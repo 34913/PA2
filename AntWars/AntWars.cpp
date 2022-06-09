@@ -1,7 +1,7 @@
 ﻿// AntWars.cpp : Tento soubor obsahuje funkci main. Provádění programu se tam zahajuje a ukončuje.
 //
 
-#ifdef linux
+#ifndef _WIN32
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_pixels.h>
 #else
@@ -486,6 +486,9 @@ int main(int argc, char** args)
 			auto& base = g.p1.GetBase(g.p1.GetSelected().GetId());
 			if (!base.train.empty()) {
 
+				// this counts the time between the training started and now
+				// it depends on if the game is running, if yes, its with now()
+				//	-> if not, it just counts it with Player::time
 				double pixels = 50;
 				pixels /= g.p1.GetTimes()[base.train.front()->type.code];
 
@@ -494,22 +497,26 @@ int main(int argc, char** args)
 					pixels *= millis.count();
 				}
 				else {
-					millis = std::chrono::duration_cast<std::chrono::milliseconds>(g.p1.time - base.ticking);
+					millis = std::chrono::duration_cast<std::chrono::milliseconds>(g.p1.GetLastTime() - base.ticking);
 					pixels *= millis.count();
 				}
 
+				// set the sizes
 				antRect->x = push.x;
 				antRect->y = push.y;
 
-				antRect->w = pixels;
+				antRect->w = (int)pixels;
 				antRect->h = 20;
 
+				// print it
 				SDL_RenderFillRect(renderer, antRect);
 
 				antRect->w = 50;
 
+				// border around
 				SDL_RenderDrawRect(renderer, antRect);
 
+				// reset
 				antRect->h = 10;
 				antRect->w = 10;
 			}
