@@ -1,7 +1,7 @@
 ﻿// AntWars.cpp : Tento soubor obsahuje funkci main. Provádění programu se tam zahajuje a ukončuje.
 //
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <chrono>
 #include <iostream>
@@ -499,10 +499,13 @@ int main(int argc, char** args)
 		//	-> JUST ONCE !!!
 		SDL_RenderPresent(renderer);
 	}
+	
+	SDL_DestroyWindow(mainWindow);
 
 	SDL_Quit();
 
 	delete antRect;
+	delete event;
 
 	if(!exit) {
 		std::cout << "End of game" << std::endl;

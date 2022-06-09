@@ -65,6 +65,9 @@ std::istream& operator>>(std::istream& is, Player& obj)
 
 	char ch;
 
+	obj.stuff.clear();
+	obj.bases.clear();
+
 	if (!(is >> obj.name))
 		throw std::invalid_argument("Cant read name");
 

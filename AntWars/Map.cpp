@@ -22,6 +22,8 @@ std::ostream& operator<<(std::ostream& os, Map& obj)
 
 std::istream& operator>>(std::istream& is, Map& obj)
 {
+	obj.arr.clear();
+
 	int width, height;
 	if (!(is >> width >> height))
 		throw std::invalid_argument("Cant read size of map, corrupted");
